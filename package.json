@@ -1,0 +1,32 @@
+{
+  "name": "p2pspacegame",
+  "version": "1.0.0",
+  "description": "",
+  "source": "src/index.html",
+  "scripts": {
+    "start": "parcel",
+    "build": "parcel build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@parcel/transformer-sass": "2.11.0",
+    "parcel": "^2.11.0",
+    "process": "^0.11.10",
+    "punycode": "^1.4.1",
+    "url": "^0.11.0"
+  },
+  "dependencies": {
+    "peerjs": "^1.5.2",
+    "pixi.js": "^7.4.0"
+  },
+  "pnpm": {
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "svgo": "2.8.0"
+      }
+    }
+  }
+}
