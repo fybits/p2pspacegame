@@ -7,7 +7,7 @@ import { DataConnection, Peer } from 'peerjs'
 type DataEventData =
     | { type: 'members-list', message: string[] }
     | { type: 'chat' | 'announce', message: string }
-    | { type: 'player_state' | 'bullet_shot' | 'bullet_collided' | 'kill', message: any }
+    | { type: 'player-state' | 'bullet-shot' | 'bullet-collided' | 'kill', message: any }
     | { type: 'player-disconnected', message: null }
 
 export class PeerRoom {
@@ -78,7 +78,7 @@ export class PeerRoom {
         this.listeners.push(listener);
     }
 
-    send(arg: any) {
+    send(arg: DataEventData) {
         this.listeners.forEach(l => l(this.userId, arg))
         this.members.forEach(m => m.send(arg))
     }

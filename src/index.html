@@ -7,14 +7,22 @@
     <title>Space Game</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="/src/css/style.scss">
+    <link rel="icon" type="image/x-icon" href="/src/imgs/favicon.ico">
 </head>
 
 <body>
     <div class="lobby-controls">
         <input id="nickname" name="nickname" />
         <button id="host">Host</button>
-        <input id="lobby " name="lobby" />
-        <button id="connect">Connect</button>
+        <input id="lobby" name="lobby" />
+        <button id="join">Join</button>
+    </div>
+    <div id="canvas-container">
+        <canvas></canvas>
+        <div>
+            <kbd>A</kbd>/<kbd>D</kbd> - turn, <kbd>W</kbd>/<kbd>S</kbd> - move, <kbd>Tab</kbd> - switch camera,
+            <kbd>F</kbd> - toggle fullscreen
+        </div>
     </div>
     <script src="/src/app.ts" type="module" async defer></script>
 </body>
