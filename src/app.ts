@@ -1,12 +1,12 @@
 
-import { Application, Assets, Sprite } from 'pixi.js';
+import { Application, Buffer, Graphics, ParticleRenderer } from 'pixi.js';
 import { PeerRoom } from './PeerRoom';
-import Player from './Player';
-import { Controls } from './Controls';
-import Enemy from './Enemy';
-
-const WINDOW_WIDTH = 1280;
-const WINDOW_HEIGHT = 720;
+import Enemy from './game-objects/Enemy';
+import Controls from './Controls';
+import Camera from './game-objects/Camera';
+import IUpdate from './game-objects/IUpdate';
+import { startGame } from './spawnObjects';
+import { WINDOW_HEIGHT, WINDOW_WIDTH } from './consts';
 
 const lobbyControlsContainer = document.querySelector<HTMLDivElement>('div.lobby-controls')!;
 
@@ -15,10 +15,17 @@ const hostBtn = document.querySelector<HTMLButtonElement>('button#host')!;
 const lobbyInput = document.querySelector<HTMLInputElement>('input#lobby')!;
 const joinBtn = document.querySelector<HTMLButtonElement>('button#join')!;
 
-const canvasContainer = document.querySelector<HTMLDivElement>('#canvas-container')!;
 const canvas = document.querySelector<HTMLCanvasElement>('canvas')!;
 
 const app = new Application<HTMLCanvasElement>({ view: canvas, width: WINDOW_WIDTH, height: WINDOW_HEIGHT });
+
+app.view.tabIndex = 1;
+app.view.autofocus = true;
+
+const camera = new Camera();
+app.stage.addChild(camera);
+
+new Controls(app.view);
 
 const storedNickname = localStorage.getItem('nickname');
 if (storedNickname) {
@@ -49,12 +56,12 @@ const connectToLobby = (nickname: string, lobbyKey?: string) => {
                     } else {
                         const enemy = new Enemy(new URL("/src/imgs/spaceship_sprite.png", import.meta.url).toString());
                         enemies.set(address, enemy);
-                        app.stage.addChild(enemy);
+                        camera.addChild(enemy);
                     }
                 }
         }
     });
-    spawnPlayer(room);
+    startGame(app, camera, room);
 }
 
 hostBtn.addEventListener('click', (e) => {
@@ -65,17 +72,5 @@ joinBtn.addEventListener('click', (e) => {
     connectToLobby(nicknameInput.value, lobbyInput.value);
 })
 
-app.view.tabIndex = 1;
-app.view.autofocus = true;
-const controls = new Controls(app.view);
-
-const spawnPlayer = (room: PeerRoom) => {
-    const player = new Player(room, new URL("/src/imgs/spaceship_sprite.png", import.meta.url).toString());
-    app.stage.addChild(player);
-
-    app.ticker.add((dt) => {
-        player.update(dt);
-    })
-}
 
 

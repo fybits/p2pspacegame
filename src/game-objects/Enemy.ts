@@ -1,10 +1,11 @@
 import { Sprite, Texture } from "pixi.js";
-import { Vector } from "./utils/Vector";
-import { Controls } from "./Controls";
+import { Vector } from "../utils/Vector";
+import Controls from "../Controls";
+import IUpdate from "./IUpdate";
 
 const speed = 150;
 
-export default class Enemy extends Sprite {
+export default class Enemy extends Sprite implements IUpdate {
     velocity: Vector;
 
     constructor(imageURL) {

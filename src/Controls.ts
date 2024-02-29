@@ -1,11 +1,11 @@
 import { Vector } from "./utils/Vector";
 
 
-export class Controls {
+export default class Controls {
     public keyboard: Map<string, number>;
     public mouse: { position: Vector, pressed: boolean };
 
-    static _instance: Controls
+    private static _instance: Controls
     static get instance() {
         if (Controls._instance) {
             return Controls._instance;

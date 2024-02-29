@@ -1,16 +1,19 @@
-import { Sprite, Texture } from "pixi.js";
-import { Vector } from "./utils/Vector";
-import { Controls } from "./Controls";
-import { PeerRoom } from "./PeerRoom";
+import { Assets, Sprite, Texture } from "pixi.js";
+import { Vector } from "../utils/Vector";
+import Controls from "../Controls";
+import { PeerRoom } from "../PeerRoom";
+import IUpdate from "./IUpdate";
 
 const speed = 150;
 
-export default class Player extends Sprite {
+export default class Player extends Sprite implements IUpdate {
     velocity: Vector;
     private _room: PeerRoom;
 
     constructor(room: PeerRoom, imageURL: string) {
-        super(Texture.from(imageURL));
+        const texture = Texture.from(imageURL);
+        texture.rotate = 2;
+        super(texture);
         this.velocity = new Vector(0, 0);
         this.anchor.x = 0.5;
         this.anchor.y = 0.5;
@@ -27,13 +30,12 @@ export default class Player extends Sprite {
             d.y += 1;
         if (Controls.instance.keyboard['d'])
             d.x += 1;
-        // console.log(d)
 
         this.angle = (this.angle + d.x * dt * 2) % 360;
 
         this.velocity = new Vector(
-            this.velocity.x * 0.99 + speed * d.y * Math.cos(this.rotation + Math.PI / 2),
-            this.velocity.y * 0.99 + speed * d.y * Math.sin(this.rotation + Math.PI / 2)
+            this.velocity.x * 0.99 + speed * d.y * Math.cos(this.rotation),
+            this.velocity.y * 0.99 + speed * d.y * Math.sin(this.rotation)
         );
 
         this.x = this.x + this.velocity.x * dt / 1000;
