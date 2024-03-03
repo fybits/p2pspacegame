@@ -1,5 +1,10 @@
 import { Vector } from "./utils/Vector";
 
+export enum KeyState {
+    OFF = 0,
+    HELD = 1,
+    PRESSED = 2,
+}
 
 export default class Controls {
     public keyboard: Map<string, number>;
@@ -15,24 +20,14 @@ export default class Controls {
 
 
     private keyDown(event: KeyboardEvent) {
-        Controls.instance.keyboard[event.key] = 1;
-        // if (event.key === 'Tab') {
-        //   event.preventDefault();
-        //   setCameraMode(!cameraMode);
-        // }
+        Controls.instance.keyboard[event.key] = KeyState.HELD;
+        event.preventDefault();
     }
 
     private keyUp(event: KeyboardEvent) {
-        Controls.instance.keyboard[event.key] = 0;
-        // if (event.key === 'f' && stageRef.current) {
-        //   if (!fullscreen) {
-        //     setFullscreen(true)
-        //     stageRef.current._canvas.requestFullscreen();
-        //   } else {
-        //     setFullscreen(false)
-        //     document.exitFullscreen();
-        //   }
-        // }
+        Controls.instance.keyboard[event.key] = KeyState.PRESSED;
+        event.preventDefault();
+        requestAnimationFrame(() => Controls.instance.keyboard[event.key] = KeyState.OFF)
     }
 
     private mouseMove(event) {

@@ -54,7 +54,6 @@ const connectToLobby = (nickname: string, lobbyKey?: string) => {
                 }
                 break;
             case 'bullet-shot':
-                console.log('bullet')
                 if (address !== room?.address()) {
                     gameManager.onBulletShot(address, message);
                 }

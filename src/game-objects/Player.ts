@@ -1,6 +1,6 @@
 import { Container, Sprite, Texture, TilingSprite } from "pixi.js";
 import { Vector } from "../utils/Vector";
-import Controls from "../Controls";
+import Controls, { KeyState } from "../Controls";
 import { PeerRoom } from "../PeerRoom";
 import IUpdate from "./IUpdate";
 
@@ -45,13 +45,13 @@ export default class Player extends Container implements IUpdate {
 
     update(dt: number) {
         const d: Vector = new Vector(0, 0);
-        if (Controls.instance.keyboard['w'])
+        if (Controls.instance.keyboard['w'] === KeyState.HELD)
             d.y += - 1;
-        if (Controls.instance.keyboard['a'])
+        if (Controls.instance.keyboard['a'] === KeyState.HELD)
             d.x += -1;
-        if (Controls.instance.keyboard['s'])
+        if (Controls.instance.keyboard['s'] === KeyState.HELD)
             d.y += 1;
-        if (Controls.instance.keyboard['d'])
+        if (Controls.instance.keyboard['d'] === KeyState.HELD)
             d.x += 1;
 
         this.graphics.angle = (this.graphics.angle + d.x * dt * 2) % 360;
