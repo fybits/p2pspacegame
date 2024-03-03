@@ -48,7 +48,8 @@ export default class GameManager {
             const enemy = this.enemies.get(address) as Enemy;
             enemy.x = message.position.x;
             enemy.y = message.position.y;
-            enemy.angle = message.angle;
+            enemy.graphics.angle = message.angle;
+            enemy.health = message.health;
         } else {
             const enemy = new Enemy(new URL("/src/imgs/spaceship_sprite.png", import.meta.url).toString());
             this.enemies.set(address, enemy);
@@ -88,7 +89,7 @@ export default class GameManager {
     }
 
     playerShoot(counter: number) {
-        const angleRads = this.player.rotation;
+        const angleRads = this.player.graphics.rotation;
         const angleRange = Math.PI / 12;
         const playerDir = new Vector(-Math.cos(angleRads), -Math.sin(angleRads));
         const playerDirLeft = new Vector(-Math.cos(angleRads - angleRange), -Math.sin(angleRads - angleRange));
@@ -101,7 +102,7 @@ export default class GameManager {
         const dirNomalized = dir.normalized;
         const dirClamped = new Vector(sortedClamp(dirNomalized.x, playerDirLeft.x, playerDirRight.x), sortedClamp(dirNomalized.y, playerDirLeft.y, playerDirRight.y));
         const bulletAngle = Math.atan2(dirClamped.y, dirClamped.x) * 180 / Math.PI;
-        const bulletVelocity = new Vector(dirClamped.x * 25000, dirClamped.y * 25000);
+        const bulletVelocity = new Vector(dirClamped.x * 50000, dirClamped.y * 50000);
         const bulletData = { id: counter, position: bulletPos, angle: bulletAngle, velocity: bulletVelocity };
         this.onBulletShot(this.room.address(), bulletData);
         this.room.send({ type: 'bullet-shot', message: bulletData })
