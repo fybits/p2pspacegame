@@ -73,11 +73,18 @@ export default class GameManager {
         this.camera.addChild(bullet);
     }
 
+    onBulletCollided(message) {
+        const bulletIndex = this.bullets.findIndex((b) => b.id === message.id && b.owner === message.owner);
+        const deletedBullet = this.bullets.splice(bulletIndex, 1);
+        if (deletedBullet[0]) deletedBullet[0].destroy();
+    }
+
     private checkPlayerBulletsCollision() {
         for (const b of this.bullets) {
             if (b.owner !== this.room.address()
                 && Vector.distance(new Vector(this.player.x, this.player.y), new Vector(b.x, b.y)) < 40) {
                 this.room.send({ type: 'bullet-collided', message: { owner: b.owner, id: b.id } })
+                this.onBulletCollided({ owner: b.owner, id: b.id });
                 this.player.health -= 5;
                 if (this.player.health < 0) {
                     this.player.x = 0;

@@ -58,6 +58,11 @@ const connectToLobby = (nickname: string, lobbyKey?: string) => {
                     gameManager.onBulletShot(address, message);
                 }
                 break;
+            case 'bullet-collided':
+                if (address !== room?.address()) {
+                    gameManager.onBulletCollided(message);
+                }
+                break;
         }
     });
     gameManager.startGame();
