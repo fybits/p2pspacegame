@@ -32,6 +32,7 @@ export default class GameManager {
     private room: PeerRoom;
 
     private cameraFollowAllMode = false
+    private fullscreen = false
 
     player: Player;
     enemies: Map<string, Enemy>;
@@ -135,11 +136,31 @@ export default class GameManager {
                 this.cameraFollowAllMode = !this.cameraFollowAllMode;
             }
 
+            if (Controls.instance.keyboard['f'] === KeyState.PRESSED) {
+                console.log('change follow mode')
+                this.fullscreen = !this.fullscreen;
+                console.log(this.app.resizeTo)
+                if (this.fullscreen) {
+                    document.querySelector('canvas')?.requestFullscreen();
+                    this.app.resizeTo = window;
+                } else {
+                    document.exitFullscreen();
+                    this.app.resizeTo = null!;
+                    this.app.screen.width = WINDOW_WIDTH;
+                    this.app.screen.height = WINDOW_HEIGHT;
+                    this.app.view.width = WINDOW_WIDTH;
+                    this.app.view.height = WINDOW_HEIGHT;
+                }
+            }
+
             const MOUSE_FACTOR = 0.4;
             const mousePos = Controls.instance.mouse.position;
 
             let desiredZoom = Math.min(0.6, SPEED_ZOOM_FACTOR / this.player.velocity.length);
             let desiredPos = new Vector(0, 0);
+
+            const WIDTH = this.app.screen.width;
+            const HEIGHT = this.app.screen.height;
 
             if (this.cameraFollowAllMode) {
                 const playersList: (Player | Enemy)[] = Array.from(this.enemies.values());
@@ -150,19 +171,19 @@ export default class GameManager {
                 const minY = playersList.reduce((min, cur) => cur.position.y < min ? cur.position.y : min, 9999999);
                 const maxY = playersList.reduce((max, cur) => cur.position.y > max ? cur.position.y : max, -9999999);
 
-                const desiredZoomX = WINDOW_WIDTH * 0.7 / (maxX - minX);
-                const desiredZoomY = WINDOW_HEIGHT * 0.7 / (maxY - minY);
+                const desiredZoomX = WIDTH * 0.7 / (maxX - minX);
+                const desiredZoomY = HEIGHT * 0.7 / (maxY - minY);
                 desiredZoom = Math.min(0.8, desiredZoomX, desiredZoomY);
 
-                const averageX = playersList.reduce((acc, cur) => cur.position.x + acc, 0) / playersList.length + (mousePos.x - WINDOW_WIDTH / 2) * MOUSE_FACTOR;
-                const averageY = playersList.reduce((acc, cur) => cur.position.y + acc, 0) / playersList.length + (mousePos.y - WINDOW_HEIGHT / 2) * MOUSE_FACTOR;
-                desiredPos = new Vector((WINDOW_WIDTH / 2 - averageX * desiredZoom), (WINDOW_HEIGHT / 2 - averageY * desiredZoom));
+                const averageX = playersList.reduce((acc, cur) => cur.position.x + acc, 0) / playersList.length + (mousePos.x - WIDTH / 2) * MOUSE_FACTOR;
+                const averageY = playersList.reduce((acc, cur) => cur.position.y + acc, 0) / playersList.length + (mousePos.y - HEIGHT / 2) * MOUSE_FACTOR;
+                desiredPos = new Vector((WIDTH / 2 - averageX * desiredZoom), (HEIGHT / 2 - averageY * desiredZoom));
             } else {
                 const cameraOffset = {
-                    x: this.player.x + this.player.velocity.x / 20 + (mousePos.x - WINDOW_WIDTH / 2) * MOUSE_FACTOR,
-                    y: this.player.y + this.player.velocity.y / 20 + (mousePos.y - WINDOW_HEIGHT / 2) * MOUSE_FACTOR,
+                    x: this.player.x + this.player.velocity.x / 20 + (mousePos.x - WIDTH / 2) * MOUSE_FACTOR,
+                    y: this.player.y + this.player.velocity.y / 20 + (mousePos.y - HEIGHT / 2) * MOUSE_FACTOR,
                 };
-                desiredPos = new Vector((WINDOW_WIDTH / 2 - cameraOffset.x * desiredZoom), (WINDOW_HEIGHT / 2 - cameraOffset.y * desiredZoom));
+                desiredPos = new Vector((WIDTH / 2 - cameraOffset.x * desiredZoom), (HEIGHT / 2 - cameraOffset.y * desiredZoom));
             }
 
             this.camera.desiredPosition.x = desiredPos.x;
