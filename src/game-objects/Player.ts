@@ -7,6 +7,7 @@ import IUpdate from "./IUpdate";
 const speed = 150;
 
 export default class Player extends Sprite implements IUpdate {
+    health = 100;
     velocity: Vector;
     private _room: PeerRoom;
 

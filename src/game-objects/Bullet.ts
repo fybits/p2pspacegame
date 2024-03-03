@@ -7,14 +7,18 @@ const speed = 150;
 
 export default class Bullet extends Sprite implements IUpdate {
     velocity: Vector;
+    owner: string;
+    id: number;
 
-    constructor(position: Vector, velocity: Vector, angle: number, imageURL: string) {
+    constructor(position: Vector, velocity: Vector, angle: number, owner: string, id: number, imageURL: string) {
         super(Texture.from(imageURL));
         this.position = position;
         this.velocity = velocity;
         this.angle = angle + 90;
         this.anchor.x = 0.5;
         this.anchor.y = 0.5;
+        this.owner = owner;
+        this.id = id;
     }
 
     update(dt: number) {

@@ -5,8 +5,10 @@ import Enemy from './game-objects/Enemy';
 import Controls from './Controls';
 import Camera from './game-objects/Camera';
 import IUpdate from './game-objects/IUpdate';
-import { startGame } from './spawnObjects';
+import GameManager from './GameManager';
 import { WINDOW_HEIGHT, WINDOW_WIDTH } from './consts';
+import Player from './game-objects/Player';
+import Bullet from './game-objects/Bullet';
 
 const lobbyControlsContainer = document.querySelector<HTMLDivElement>('div.lobby-controls')!;
 
@@ -34,34 +36,32 @@ if (storedNickname) {
 
 let room: PeerRoom | null = null;
 
-const enemies = new Map<string, Enemy>();
 
 const connectToLobby = (nickname: string, lobbyKey?: string) => {
     localStorage.setItem('nickname', nickname);
-    room = new PeerRoom(nickname);
+    room = new PeerRoom(`${nickname}_p2pspacegame`);
     if (lobbyKey) {
         console.log("connect")
-        room.connectToMember(lobbyKey);
+        room.connectToMember(`${lobbyKey}_p2pspacegame`);
     }
+    const gameManager = new GameManager(app, camera, room);
     lobbyControlsContainer.hidden = true;
     room.on("message", (address, { type, message }) => {
         switch (type) {
             case 'player-state':
                 if (address !== room?.address()) {
-                    if (enemies.has(address)) {
-                        const enemy = enemies.get(address) as Enemy;
-                        enemy.x = message.position.x;
-                        enemy.y = message.position.y;
-                        enemy.angle = message.angle;
-                    } else {
-                        const enemy = new Enemy(new URL("/src/imgs/spaceship_sprite.png", import.meta.url).toString());
-                        enemies.set(address, enemy);
-                        camera.addChild(enemy);
-                    }
+                    gameManager.onPlayerState(address, message);
                 }
+                break;
+            case 'bullet-shot':
+                console.log('bullet')
+                if (address !== room?.address()) {
+                    gameManager.onBulletShot(address, message);
+                }
+                break;
         }
     });
-    startGame(app, camera, room);
+    gameManager.startGame();
 }
 
 hostBtn.addEventListener('click', (e) => {
