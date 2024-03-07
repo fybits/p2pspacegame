@@ -9,7 +9,11 @@ const speed = 200;
 export default class Player extends Container implements IUpdate {
     health = 100;
     velocity: Vector;
+    angularVelocity: number = 0;
     graphics: Sprite;
+    rcsOn: boolean = true;
+    gyroOn: boolean = true;
+
     private _room: PeerRoom;
     private healthBar: TilingSprite;
 
@@ -54,13 +58,23 @@ export default class Player extends Container implements IUpdate {
         if (Controls.instance.keyboard['d'] === KeyState.HELD)
             d.x += 1;
 
-        this.graphics.angle = (this.graphics.angle + d.x * dt * 2) % 360;
+        if (d.x) {
+            this.angularVelocity = this.angularVelocity * 0.99 + d.x * dt * 0.1;
+        } else if (this.gyroOn) {
+            this.angularVelocity *= 0.95
+        }
+
+        this.graphics.angle = (this.graphics.angle + this.angularVelocity * dt) % 360;
         this.healthBar.width = this.health * 1.5;
 
-        this.velocity = new Vector(
-            this.velocity.x * 0.99 + speed * d.y * Math.cos(this.graphics.rotation),
-            this.velocity.y * 0.99 + speed * d.y * Math.sin(this.graphics.rotation)
-        );
+        if (d.y) {
+            this.velocity = new Vector(
+                this.velocity.x * 0.998 + speed * d.y * dt * Math.cos(this.graphics.rotation),
+                this.velocity.y * 0.998 + speed * d.y * dt * Math.sin(this.graphics.rotation)
+            );
+        } else if (this.rcsOn) {
+            this.velocity = new Vector(this.velocity.x * 0.99, this.velocity.y * 0.99);
+        }
 
         this.x = this.x + this.velocity.x * dt / 1000;
         this.y = this.y + this.velocity.y * dt / 1000;

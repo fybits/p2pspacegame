@@ -27,10 +27,12 @@ body {
 
 .controls {
     font-size: 1.5rem;
+    margin-top: 10px;
 }
 
 kbd {
-    border-bottom: 0.3em solid #505050;
+    border-top: 0.15em solid #b1b1b1;
+    border-bottom: 0.5em solid #505050;
     border-left: 0.3em solid #6b6b6b;
     border-right: 0.3em solid #6b6b6b;
     padding-left: 0.3em;
