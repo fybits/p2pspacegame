@@ -31,6 +31,7 @@ body {
 }
 
 kbd {
+    display: inline-block;
     border-top: 0.15em solid #b1b1b1;
     border-bottom: 0.5em solid #505050;
     border-left: 0.3em solid #6b6b6b;
@@ -38,10 +39,8 @@ kbd {
     padding-left: 0.3em;
     padding-right: 0.3em;
     background-color: #999999;
-    // padding-left: 0.5em;
-    // padding-right: 0.5em;
     padding-top: 0.1em;
     font-weight: bold;
-    margin: 0 0.3em;
+    margin: 0.1em 0.3em;
     border-radius: 0.15em;
 }

@@ -12,8 +12,12 @@ export default class Player extends Container implements IUpdate {
     angularVelocity: number = 0;
     graphics: Sprite;
     rcsOn: boolean = true;
+    rcsBroken: boolean = false;
     gyroOn: boolean = true;
+    gyroBroken: boolean = false;
 
+    private jetL: Sprite;
+    private jetR: Sprite;
     private _room: PeerRoom;
     private healthBar: TilingSprite;
 
@@ -21,6 +25,33 @@ export default class Player extends Container implements IUpdate {
         super();
         this._room = room;
         this.velocity = new Vector(0, 0);
+
+        const texture = Texture.from(imageURL);
+        texture.rotate = 2;
+        const playerSprite = new Sprite(texture);
+        this.graphics = playerSprite;
+        this.graphics.anchor.x = 0.5;
+        this.graphics.anchor.y = 0.5;
+        this.addChild(this.graphics)
+
+        const jetTexture = Texture.from(new URL("/src/imgs/jet.png", import.meta.url).toString());
+        this.jetL = new Sprite(jetTexture);
+        this.jetL.angle = -90;
+        this.jetL.anchor.x = 0.5;
+        this.jetL.anchor.y = 0;
+        this.jetL.x = 50;
+        this.jetL.y = 35;
+        this.jetL.scale.set(0.4, 0.5);
+        this.graphics.addChild(this.jetL);
+
+        this.jetR = new Sprite(jetTexture);
+        this.jetR.angle = -90;
+        this.jetR.anchor.x = 0.5;
+        this.jetR.anchor.y = 0;
+        this.jetR.x = 50;
+        this.jetR.y = -35;
+        this.jetR.scale.set(0.4, 0.5);
+        this.graphics.addChild(this.jetR);
 
         const bulletTexture = Texture.from(new URL("/src/imgs/long-ray.png", import.meta.url).toString());
         this.healthBar = new TilingSprite(bulletTexture, this.health * 1.5, 16);
@@ -37,14 +68,6 @@ export default class Player extends Container implements IUpdate {
         healthBarBackground.tint = 0xff0000;
         this.addChild(healthBarBackground);
         this.addChild(this.healthBar);
-
-        const texture = Texture.from(imageURL);
-        texture.rotate = 2;
-        const playerSprite = new Sprite(texture);
-        this.graphics = playerSprite;
-        this.graphics.anchor.x = 0.5;
-        this.graphics.anchor.y = 0.5;
-        this.addChild(this.graphics)
     }
 
     update(dt: number) {
@@ -58,9 +81,14 @@ export default class Player extends Container implements IUpdate {
         if (Controls.instance.keyboard['d'] === KeyState.HELD)
             d.x += 1;
 
+        this.jetL.scale.y = -0.4 * d.y + 0.1 + d.x * 0.1;
+        this.jetR.scale.y = -0.4 * d.y + 0.1 - d.x * 0.1;
+        this.jetL.alpha = 0.75 + Math.random() / 4;
+        this.jetR.alpha = 0.75 + Math.random() / 4;
+
         if (d.x) {
             this.angularVelocity = this.angularVelocity * 0.99 + d.x * dt * 0.1;
-        } else if (this.gyroOn) {
+        } else if (this.gyroOn && !this.gyroBroken) {
             this.angularVelocity *= 0.95
         }
 
@@ -72,13 +100,13 @@ export default class Player extends Container implements IUpdate {
                 this.velocity.x * 0.998 + speed * d.y * dt * Math.cos(this.graphics.rotation),
                 this.velocity.y * 0.998 + speed * d.y * dt * Math.sin(this.graphics.rotation)
             );
-        } else if (this.rcsOn) {
+        } else if (this.rcsOn && !this.rcsBroken) {
             this.velocity = new Vector(this.velocity.x * 0.99, this.velocity.y * 0.99);
         }
 
         this.x = this.x + this.velocity.x * dt / 1000;
         this.y = this.y + this.velocity.y * dt / 1000;
 
-        this._room.send({ type: 'player-state', message: { position: { x: this.x, y: this.y }, angle: this.graphics.angle, health: this.health } })
+        this._room.send({ type: 'player-state', message: { position: { x: this.x, y: this.y }, angle: this.graphics.angle, health: this.health, d: { x: d.x, y: d.y } } })
     }
 }

@@ -58,6 +58,8 @@ export default class GameManager {
             enemy.y = message.position.y;
             enemy.graphics.angle = message.angle;
             enemy.health = message.health;
+            enemy.d.x = message.d.x;
+            enemy.d.y = message.d.y;
         } else {
             const enemy = new Enemy(new URL("/src/imgs/spaceship_sprite.png", import.meta.url).toString());
             this.enemies.set(address, enemy);
@@ -90,12 +92,20 @@ export default class GameManager {
                 this.room.send({ type: 'bullet-collided', message: { owner: b.owner, id: b.id } })
                 this.onBulletCollided({ owner: b.owner, id: b.id });
                 this.player.health -= 5;
+                if (Math.random() < 1 / this.player.health) {
+                    this.player.gyroBroken = true;
+                }
+                if (Math.random() < 1 / this.player.health) {
+                    this.player.rcsBroken = true;
+                }
                 if (this.player.health < 0) {
                     this.player.x = 0;
                     this.player.y = 0;
                     this.player.velocity = new Vector(0, 0);
                     this.player.health = 100;
                     this.player.rotation = 0;
+                    this.player.gyroBroken = false;
+                    this.player.rcsBroken = false;
                     this.room.send({ type: 'kill', message: { killer: b.owner, target: this.room.address() } })
                 }
             }
@@ -181,14 +191,20 @@ export default class GameManager {
         this.app.ticker.add((dt) => {
             this.velText.text = this.player.velocity.length.toFixed(0);
             this.positionText.text = `${this.player.x.toFixed()}  ${this.player.y.toFixed()}`;
-            if (this.player.rcsOn) {
+            if (this.player.rcsBroken) {
+                this.rcsText.text = "[!] RCS";
+                this.rcsText.style.fill = '#f00';
+            } else if (this.player.rcsOn) {
                 this.rcsText.text = "[x] RCS";
                 this.rcsText.style.fill = '#0f0';
             } else {
                 this.rcsText.text = "[ ] RCS";
                 this.rcsText.style.fill = '#f00';
             }
-            if (this.player.gyroOn) {
+            if (this.player.gyroBroken) {
+                this.gyroText.text = "[!] GYRO";
+                this.gyroText.style.fill = '#f00';
+            } else if (this.player.gyroOn) {
                 this.gyroText.text = "[x] GYRO";
                 this.gyroText.style.fill = '#0f0';
             } else {

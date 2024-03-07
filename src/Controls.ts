@@ -31,8 +31,7 @@ export default class Controls {
     }
 
     private mouseMove(event) {
-        var rect = event.target.getBoundingClientRect();
-        Controls.instance.mouse.position = new Vector(event.clientX - rect.left, event.clientY - rect.top);
+        Controls.instance.mouse.position = new Vector(event.offsetX, event.offsetY);
     }
 
     private mouseDown(event: MouseEvent) {
