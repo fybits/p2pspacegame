@@ -4,17 +4,20 @@ import Controls, { KeyState } from "../Controls";
 import { PeerRoom } from "../PeerRoom";
 import IUpdate from "./IUpdate";
 
-const speed = 200;
-
+const MAX_AFTERBURNER = 100;
 export default class Player extends Container implements IUpdate {
     health = 100;
     velocity: Vector;
     angularVelocity: number = 0;
     graphics: Sprite;
+    engOn: boolean = true;
+    engBroken: boolean = false;
     rcsOn: boolean = true;
     rcsBroken: boolean = false;
     gyroOn: boolean = true;
     gyroBroken: boolean = false;
+    speed: number = 200;
+    afterburner: number = 100;
 
     private jetL: Sprite;
     private jetR: Sprite;
@@ -81,32 +84,70 @@ export default class Player extends Container implements IUpdate {
         if (Controls.instance.keyboard['d'] === KeyState.HELD)
             d.x += 1;
 
-        this.jetL.scale.y = -0.4 * d.y + 0.1 + d.x * 0.1;
-        this.jetR.scale.y = -0.4 * d.y + 0.1 - d.x * 0.1;
+        if (Controls.instance.keyboard[' '] === KeyState.HELD && this.afterburner > 0) {
+            if (this.afterburner > 1) {
+                this.speed = 600;
+            }
+            this.afterburner -= dt / 2;
+        } else {
+            this.speed = 200;
+            if (this.afterburner < MAX_AFTERBURNER)
+                this.afterburner += dt / 4;
+        }
+
+        if (Controls.instance.keyboard['e'] === KeyState.PRESSED) {
+            this.engOn = !this.engOn;
+        }
+
+        if (Controls.instance.keyboard['r'] === KeyState.PRESSED) {
+            this.rcsOn = !this.rcsOn;
+        }
+
+        if (Controls.instance.keyboard['g'] === KeyState.PRESSED) {
+            this.gyroOn = !this.gyroOn;
+        }
+
+        this.jetL.scale.y = -0.4 * d.y * this.speed / 200 + d.x * 0.1 + Math.random() / 20 + 0.1;
+        this.jetR.scale.y = -0.4 * d.y * this.speed / 200 - d.x * 0.1 + Math.random() / 20 + 0.1;
         this.jetL.alpha = 0.75 + Math.random() / 4;
         this.jetR.alpha = 0.75 + Math.random() / 4;
 
-        if (d.x) {
+        if (d.x && this.engOn && !this.engBroken) {
             this.angularVelocity = this.angularVelocity * 0.99 + d.x * dt * 0.1;
         } else if (this.gyroOn && !this.gyroBroken) {
             this.angularVelocity *= 0.95
         }
 
+        if (!this.engOn || this.engBroken) {
+            this.jetL.alpha = 0;
+            this.jetR.alpha = 0;
+        }
+
         this.graphics.angle = (this.graphics.angle + this.angularVelocity * dt) % 360;
         this.healthBar.width = this.health * 1.5;
 
-        if (d.y) {
+        if (d.y && this.engOn && !this.engBroken) {
             this.velocity = new Vector(
-                this.velocity.x * 0.998 + speed * d.y * dt * Math.cos(this.graphics.rotation),
-                this.velocity.y * 0.998 + speed * d.y * dt * Math.sin(this.graphics.rotation)
+                this.velocity.x * 0.998 + this.speed * d.y * dt * Math.cos(this.graphics.rotation),
+                this.velocity.y * 0.998 + this.speed * d.y * dt * Math.sin(this.graphics.rotation)
             );
-        } else if (this.rcsOn && !this.rcsBroken) {
+        } else if (this.rcsOn && !this.rcsBroken && this.engOn && !this.engBroken) {
             this.velocity = new Vector(this.velocity.x * 0.99, this.velocity.y * 0.99);
         }
 
         this.x = this.x + this.velocity.x * dt / 1000;
         this.y = this.y + this.velocity.y * dt / 1000;
 
-        this._room.send({ type: 'player-state', message: { position: { x: this.x, y: this.y }, angle: this.graphics.angle, health: this.health, d: { x: d.x, y: d.y } } })
+        this._room.send({
+            type: 'player-state',
+            message: {
+                position: { x: this.x, y: this.y },
+                angle: this.graphics.angle,
+                health: this.health,
+                d: { x: d.x, y: d.y },
+                engine: !this.engBroken && this.engOn,
+                speed: this.speed,
+            }
+        })
     }
 }

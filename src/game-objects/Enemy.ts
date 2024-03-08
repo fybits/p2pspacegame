@@ -3,14 +3,14 @@ import { Vector } from "../utils/Vector";
 import Controls from "../Controls";
 import IUpdate from "./IUpdate";
 
-const speed = 150;
-
 export default class Enemy extends Container implements IUpdate {
     velocity: Vector;
     health: number;
     graphics: Sprite;
     private healthBar: TilingSprite;
     d: Vector;
+    engine: boolean;
+    speed: number;
 
     private jetL: Sprite;
     private jetR: Sprite;
@@ -64,11 +64,15 @@ export default class Enemy extends Container implements IUpdate {
 
     update(dt: number) {
 
-        this.jetL.scale.y = -0.4 * this.d.y + 0.1 + this.d.x * 0.1;
-        this.jetR.scale.y = -0.4 * this.d.y + 0.1 - this.d.x * 0.1;
+        this.jetL.scale.y = -0.4 * this.d.y * this.speed / 200 + this.d.x * 0.1 + Math.random() / 20 + 0.1;
+        this.jetR.scale.y = -0.4 * this.d.y * this.speed / 200 - this.d.x * 0.1 + Math.random() / 20 + 0.1;
         this.jetL.alpha = 0.75 + Math.random() / 4;
         this.jetR.alpha = 0.75 + Math.random() / 4;
 
+        if (!this.engine) {
+            this.jetL.alpha = 0;
+            this.jetR.alpha = 0;
+        }
 
         this.x = this.x + this.velocity.x * dt / 1000;
         this.y = this.y + this.velocity.y * dt / 1000;

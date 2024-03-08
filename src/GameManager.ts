@@ -1,4 +1,4 @@
-import { Application, Assets, Graphics, Text } from 'pixi.js';
+import { Application, Assets, Graphics, Texture, TilingSprite } from 'pixi.js';
 import { PeerRoom } from './PeerRoom';
 import { Vector } from './utils/Vector';
 import Controls, { KeyState } from './Controls';
@@ -9,6 +9,7 @@ import { isIUpdate } from './game-objects/IUpdate';
 import { SPEED_ZOOM_FACTOR, WINDOW_HEIGHT, WINDOW_WIDTH } from './consts';
 import { sortedClamp } from './utils';
 import Enemy from './game-objects/Enemy';
+import UI from './game-objects/UI';
 
 
 const starsBackground = (g: Graphics) => {
@@ -29,6 +30,7 @@ const starsBackground = (g: Graphics) => {
 export default class GameManager {
     private app: Application;
     private camera: Camera;
+    private ui: UI;
     private room: PeerRoom;
 
     private cameraFollowAllMode = false
@@ -37,11 +39,6 @@ export default class GameManager {
     player: Player;
     enemies: Map<string, Enemy>;
     bullets: Bullet[];
-
-    positionText = new Text();
-    velText = new Text();
-    rcsText = new Text();
-    gyroText = new Text();
 
     constructor(app: Application, camera: Camera, room: PeerRoom) {
         this.app = app;
@@ -60,6 +57,8 @@ export default class GameManager {
             enemy.health = message.health;
             enemy.d.x = message.d.x;
             enemy.d.y = message.d.y;
+            enemy.engine = message.engine;
+            enemy.speed = message.speed;
         } else {
             const enemy = new Enemy(new URL("/src/imgs/spaceship_sprite.png", import.meta.url).toString());
             this.enemies.set(address, enemy);
@@ -92,11 +91,14 @@ export default class GameManager {
                 this.room.send({ type: 'bullet-collided', message: { owner: b.owner, id: b.id } })
                 this.onBulletCollided({ owner: b.owner, id: b.id });
                 this.player.health -= 5;
-                if (Math.random() < 1 / this.player.health) {
+                if (Math.random() < 0.1 - (this.player.health / 1000)) {
                     this.player.gyroBroken = true;
                 }
-                if (Math.random() < 1 / this.player.health) {
+                if (Math.random() < 0.1 - (this.player.health / 1000)) {
                     this.player.rcsBroken = true;
+                }
+                if (Math.random() < 0.05 - (this.player.health / 1000)) {
+                    this.player.engBroken = true;
                 }
                 if (this.player.health < 0) {
                     this.player.x = 0;
@@ -106,6 +108,7 @@ export default class GameManager {
                     this.player.rotation = 0;
                     this.player.gyroBroken = false;
                     this.player.rcsBroken = false;
+                    this.player.engBroken = false;
                     this.room.send({ type: 'kill', message: { killer: b.owner, target: this.room.address() } })
                 }
             }
@@ -132,17 +135,6 @@ export default class GameManager {
         this.room.send({ type: 'bullet-shot', message: bulletData })
     }
 
-    redrawGUI() {
-        this.velText.x = this.app.screen.width / 2;
-        this.velText.y = this.app.screen.height - 40;
-        this.rcsText.x = this.app.screen.width / 2 + this.app.screen.width / 12;
-        this.rcsText.y = this.app.screen.height - 70;
-        this.gyroText.x = this.app.screen.width / 2 + this.app.screen.width / 12;
-        this.gyroText.y = this.app.screen.height - 40;
-        this.positionText.x = this.app.screen.left + 30;
-        this.positionText.y = this.app.screen.top + 30;
-        console.log(this.app.screen.bottom)
-    }
 
     async startGame() {
         this.player = new Player(this.room, new URL("/src/imgs/spaceship_sprite.png", import.meta.url).toString());
@@ -161,56 +153,12 @@ export default class GameManager {
         const fireRate = 5;
         let time = fireRate;
 
-        this.velText.anchor.x = 0.5;
-        this.velText.style.fill = '#fff';
-        this.velText.style.fontFamily = 'Consolas, sans-serif'
-        this.app.stage.addChild(this.velText);
-
-        // this.rcsText.anchor.x = 0.5;
-        this.rcsText.text = "[x] RCS";
-        this.rcsText.style.fill = '#0f0';
-        this.rcsText.style.fontFamily = 'Consolas, sans-serif'
-        this.rcsText.style.fontWeight = 'bold';
-        this.app.stage.addChild(this.rcsText);
-
-        // this.gyroText.anchor.x = 0.5;
-        this.gyroText.text = "[x] GYRO";
-        this.gyroText.style.fill = '#0f0';
-        this.gyroText.style.fontFamily = 'Consolas, sans-serif'
-        this.gyroText.style.fontWeight = 'bold';
-        this.app.stage.addChild(this.gyroText);
-
-        this.positionText.text = "";
-        this.positionText.style.fill = '#fff';
-        this.positionText.style.fontFamily = 'Consolas, sans-serif'
-        this.positionText.style.fontWeight = 'bold';
-        this.app.stage.addChild(this.positionText);
-        this.redrawGUI()
-
+        this.ui = new UI(this.app.screen, this);
+        this.app.stage.addChild(this.ui);
 
         this.app.ticker.add((dt) => {
-            this.velText.text = this.player.velocity.length.toFixed(0);
-            this.positionText.text = `${this.player.x.toFixed()}  ${this.player.y.toFixed()}`;
-            if (this.player.rcsBroken) {
-                this.rcsText.text = "[!] RCS";
-                this.rcsText.style.fill = '#f00';
-            } else if (this.player.rcsOn) {
-                this.rcsText.text = "[x] RCS";
-                this.rcsText.style.fill = '#0f0';
-            } else {
-                this.rcsText.text = "[ ] RCS";
-                this.rcsText.style.fill = '#f00';
-            }
-            if (this.player.gyroBroken) {
-                this.gyroText.text = "[!] GYRO";
-                this.gyroText.style.fill = '#f00';
-            } else if (this.player.gyroOn) {
-                this.gyroText.text = "[x] GYRO";
-                this.gyroText.style.fill = '#0f0';
-            } else {
-                this.gyroText.text = "[ ] GYRO";
-                this.gyroText.style.fill = '#f00';
-            }
+            this.ui.update(this.app.ticker.deltaMS);
+
 
             for (const child of this.camera.children) {
                 if (isIUpdate(child)) {
@@ -218,14 +166,6 @@ export default class GameManager {
                 }
             }
             this.checkPlayerBulletsCollision();
-
-            if (Controls.instance.keyboard['r'] === KeyState.PRESSED) {
-                this.player.rcsOn = !this.player.rcsOn;
-            }
-
-            if (Controls.instance.keyboard['g'] === KeyState.PRESSED) {
-                this.player.gyroOn = !this.player.gyroOn;
-            }
 
             if (Controls.instance.keyboard['tab'] === KeyState.PRESSED) {
                 console.log('change follow mode')
@@ -248,7 +188,7 @@ export default class GameManager {
                     this.app.view.width = WINDOW_WIDTH;
                     this.app.view.height = WINDOW_HEIGHT;
                 }
-                this.redrawGUI()
+                this.ui.redrawGUI()
             }
 
             const MOUSE_FACTOR = 0.4;
