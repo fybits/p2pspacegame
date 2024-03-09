@@ -639,7 +639,7 @@ joinBtn.addEventListener("click", (e)=>{
     connectToLobby(nicknameInput.value, lobbyInput.value);
 });
 
-},{"pixi.js":"50mJo","./PeerRoom":"iLUuN","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz","./Controls":"8qatZ","./game-objects/Camera":"6eJaV","./consts":"7htQN","./GameManager":"lR2uF"}],"50mJo":[function(require,module,exports) {
+},{"pixi.js":"50mJo","./PeerRoom":"iLUuN","./Controls":"8qatZ","./game-objects/Camera":"6eJaV","./GameManager":"lR2uF","./consts":"7htQN","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"50mJo":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "filters", ()=>(0, _filtersMjs.filters));
@@ -37869,17 +37869,7 @@ class Camera extends (0, _pixiJs.Container) {
 }
 exports.default = Camera;
 
-},{"pixi.js":"50mJo","../utils/Vector":"47iGf","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"7htQN":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "WINDOW_WIDTH", ()=>WINDOW_WIDTH);
-parcelHelpers.export(exports, "WINDOW_HEIGHT", ()=>WINDOW_HEIGHT);
-parcelHelpers.export(exports, "SPEED_ZOOM_FACTOR", ()=>SPEED_ZOOM_FACTOR);
-const WINDOW_WIDTH = 1280;
-const WINDOW_HEIGHT = 720;
-const SPEED_ZOOM_FACTOR = 5000;
-
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"lR2uF":[function(require,module,exports) {
+},{"pixi.js":"50mJo","../utils/Vector":"47iGf","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"lR2uF":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _pixiJs = require("pixi.js");
@@ -38097,7 +38087,7 @@ class GameManager {
 }
 exports.default = GameManager;
 
-},{"pixi.js":"50mJo","./utils/Vector":"47iGf","./Controls":"8qatZ","./game-objects/Player":"4bI0o","./game-objects/Bullet":"hRcs9","./game-objects/IUpdate":"jGXbG","./consts":"7htQN","./utils":"6Mk9B","f87138cfe160a96d":"3r5Yx","c2675bd49ac2f858":"lJA5a","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz","./game-objects/Enemy":"csgB9","./game-objects/UI":"haTrm"}],"4bI0o":[function(require,module,exports) {
+},{"pixi.js":"50mJo","./utils/Vector":"47iGf","./Controls":"8qatZ","./game-objects/Player":"4bI0o","./game-objects/Bullet":"hRcs9","./game-objects/IUpdate":"jGXbG","./consts":"7htQN","./utils":"6Mk9B","./game-objects/Enemy":"csgB9","./game-objects/UI":"haTrm","f87138cfe160a96d":"3r5Yx","c2675bd49ac2f858":"lJA5a","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"4bI0o":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _pixiJs = require("pixi.js");
@@ -38225,10 +38215,10 @@ class Player extends (0, _pixiJs.Container) {
 }
 exports.default = Player;
 
-},{"pixi.js":"50mJo","../utils/Vector":"47iGf","../Controls":"8qatZ","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz","8fcaa877b91c53fb":"lJA5a","c778f937de3c39cf":"9DXF3"}],"lJA5a":[function(require,module,exports) {
-module.exports = require("54d330ac088c08f0").getBundleURL("jY4eA") + "long-ray.d7a4554b.png" + "?" + Date.now();
+},{"pixi.js":"50mJo","../utils/Vector":"47iGf","../Controls":"8qatZ","c778f937de3c39cf":"9DXF3","8fcaa877b91c53fb":"lJA5a","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"9DXF3":[function(require,module,exports) {
+module.exports = require("25043ac118bdc5c8").getBundleURL("jY4eA") + "jet.0deac52b.png" + "?" + Date.now();
 
-},{"54d330ac088c08f0":"b0ReP"}],"b0ReP":[function(require,module,exports) {
+},{"25043ac118bdc5c8":"b0ReP"}],"b0ReP":[function(require,module,exports) {
 "use strict";
 var bundleURL = {};
 function getBundleURLCached(id) {
@@ -38263,10 +38253,10 @@ exports.getBundleURL = getBundleURLCached;
 exports.getBaseURL = getBaseURL;
 exports.getOrigin = getOrigin;
 
-},{}],"9DXF3":[function(require,module,exports) {
-module.exports = require("25043ac118bdc5c8").getBundleURL("jY4eA") + "jet.0deac52b.png" + "?" + Date.now();
+},{}],"lJA5a":[function(require,module,exports) {
+module.exports = require("54d330ac088c08f0").getBundleURL("jY4eA") + "long-ray.d7a4554b.png" + "?" + Date.now();
 
-},{"25043ac118bdc5c8":"b0ReP"}],"hRcs9":[function(require,module,exports) {
+},{"54d330ac088c08f0":"b0ReP"}],"hRcs9":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _pixiJs = require("pixi.js");
@@ -38289,13 +38279,23 @@ class Bullet extends (0, _pixiJs.Sprite) {
 }
 exports.default = Bullet;
 
-},{"pixi.js":"50mJo","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz","65c3665ffd5adba8":"lJA5a"}],"jGXbG":[function(require,module,exports) {
+},{"pixi.js":"50mJo","65c3665ffd5adba8":"lJA5a","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"jGXbG":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "isIUpdate", ()=>isIUpdate);
 const isIUpdate = (object)=>{
     return object.update !== undefined;
 };
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"7htQN":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "WINDOW_WIDTH", ()=>WINDOW_WIDTH);
+parcelHelpers.export(exports, "WINDOW_HEIGHT", ()=>WINDOW_HEIGHT);
+parcelHelpers.export(exports, "SPEED_ZOOM_FACTOR", ()=>SPEED_ZOOM_FACTOR);
+const WINDOW_WIDTH = 1280;
+const WINDOW_HEIGHT = 720;
+const SPEED_ZOOM_FACTOR = 5000;
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"6Mk9B":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -38306,10 +38306,7 @@ const sortedClamp = (value, a, b)=>{
     return Math.min(Math.max(value, a), b);
 };
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"3r5Yx":[function(require,module,exports) {
-module.exports = require("55743529fff2d957").getBundleURL("jY4eA") + "spaceship_sprite.9a0260ff.png" + "?" + Date.now();
-
-},{"55743529fff2d957":"b0ReP"}],"csgB9":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"csgB9":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _pixiJs = require("pixi.js");
@@ -38385,7 +38382,7 @@ class Enemy extends (0, _pixiJs.Container) {
 }
 exports.default = Enemy;
 
-},{"pixi.js":"50mJo","../utils/Vector":"47iGf","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz","9f2139e6c83fffd6":"lJA5a","355511b42bcae109":"9DXF3"}],"haTrm":[function(require,module,exports) {
+},{"pixi.js":"50mJo","../utils/Vector":"47iGf","355511b42bcae109":"9DXF3","9f2139e6c83fffd6":"lJA5a","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"haTrm":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _pixiJs = require("pixi.js");
@@ -38490,6 +38487,9 @@ class UI extends (0, _pixiJs.Container) {
 }
 exports.default = UI;
 
-},{"pixi.js":"50mJo","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}]},["ja4Ww","kuM8f"], "kuM8f", "parcelRequire676f")
+},{"pixi.js":"50mJo","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"3r5Yx":[function(require,module,exports) {
+module.exports = require("55743529fff2d957").getBundleURL("jY4eA") + "spaceship_sprite.9a0260ff.png" + "?" + Date.now();
+
+},{"55743529fff2d957":"b0ReP"}]},["ja4Ww","kuM8f"], "kuM8f", "parcelRequire676f")
 
 //# sourceMappingURL=index.fec10fab.js.map
