@@ -6,6 +6,8 @@
   "scripts": {
     "start": "parcel",
     "build": "parcel build",
+    "predeploy": "pnpm build",
+    "deploy": "gh-pages -d dist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -19,6 +21,7 @@
     "url": "^0.11.0"
   },
   "dependencies": {
+    "gh-pages": "^6.1.1",
     "peerjs": "^1.5.2",
     "pixi.js": "^7.4.0"
   },

@@ -159,7 +159,6 @@ export default class GameManager {
         this.app.ticker.add((dt) => {
             this.ui.update(this.app.ticker.deltaMS);
 
-
             for (const child of this.camera.children) {
                 if (isIUpdate(child)) {
                     child.update(dt);
