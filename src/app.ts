@@ -36,6 +36,10 @@ if (storedNickname) {
 
 let room: PeerRoom | null = null;
 
+export const reportError = (error) => {
+    const errorElement = document.querySelector('#error');
+    if (errorElement) errorElement.textContent = error;
+}
 
 const connectToLobby = (nickname: string, lobbyKey?: string) => {
     localStorage.setItem('nickname', nickname);

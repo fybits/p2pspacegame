@@ -3,6 +3,7 @@
 */
 
 import { DataConnection, Peer } from 'peerjs'
+import { reportError } from './app';
 
 type DataEventData =
     | { type: 'members-list', message: string[] }
@@ -19,6 +20,7 @@ export class PeerRoom {
 
     constructor(private userId: string) {
         this.peer = new Peer(userId);
+        this.peer.on('error', (err) => { reportError(err.message) })
         this.peer.on('connection', (member) => this.addDataConnectionEventHandlers(member));
         window.addEventListener('beforeunload', this.unloadListener)
     }

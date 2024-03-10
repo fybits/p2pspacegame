@@ -140,7 +140,6 @@ export default class GameManager {
         this.player = new Player(this.room, new URL("/src/imgs/spaceship_sprite.png", import.meta.url).toString());
         // Preload textures
         await Assets.load(new URL("/src/imgs/long-ray.png", import.meta.url).toString());
-        console.log(Assets.cache)
 
         this.camera.addChild(this.player);
 
