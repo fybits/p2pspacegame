@@ -42,4 +42,8 @@ kbd {
   display: inline-block;
 }
 
+#error {
+  color: red;
+}
+
 /*# sourceMappingURL=index.2e8c441c.css.map */

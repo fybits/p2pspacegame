@@ -580,6 +580,8 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 
 },{}],"kuM8f":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "reportError", ()=>reportError);
 var _pixiJs = require("pixi.js");
 var _peerRoom = require("./PeerRoom");
 var _controls = require("./Controls");
@@ -608,6 +610,10 @@ new (0, _controlsDefault.default)(app.view);
 const storedNickname = localStorage.getItem("nickname");
 if (storedNickname) nicknameInput.value = storedNickname;
 let room = null;
+const reportError = (error)=>{
+    const errorElement = document.querySelector("#error");
+    if (errorElement) errorElement.textContent = error;
+};
 const connectToLobby = (nickname, lobbyKey)=>{
     localStorage.setItem("nickname", nickname);
     room = new (0, _peerRoom.PeerRoom)(`${nickname}_p2pspacegame`);
@@ -28024,6 +28030,7 @@ let HTMLTextStyle = _HTMLTextStyle;
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "PeerRoom", ()=>PeerRoom);
 var _peerjs = require("peerjs");
+var _app = require("./app");
 class PeerRoom {
     constructor(userId){
         this.userId = userId;
@@ -28031,6 +28038,9 @@ class PeerRoom {
         this.unloadListener = ()=>this.destroy();
         this.listeners = [];
         this.peer = new (0, _peerjs.Peer)(userId);
+        this.peer.on("error", (err)=>{
+            (0, _app.reportError)(err.message);
+        });
         this.peer.on("connection", (member)=>this.addDataConnectionEventHandlers(member));
         window.addEventListener("beforeunload", this.unloadListener);
     }
@@ -28094,7 +28104,7 @@ class PeerRoom {
     }
 }
 
-},{"peerjs":"93qBa","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"93qBa":[function(require,module,exports) {
+},{"peerjs":"93qBa","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz","./app":"kuM8f"}],"93qBa":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "default", ()=>$dd0187d7f28e386f$export$2e2bcd8739ae039);
@@ -38009,7 +38019,6 @@ class GameManager {
         this.player = new (0, _playerDefault.default)(this.room, new URL(require("f87138cfe160a96d")).toString());
         // Preload textures
         await (0, _pixiJs.Assets).load(new URL(require("c2675bd49ac2f858")).toString());
-        console.log((0, _pixiJs.Assets).cache);
         this.camera.addChild(this.player);
         const g = new (0, _pixiJs.Graphics)();
         starsBackground(g);
@@ -38094,7 +38103,7 @@ var _pixiJs = require("pixi.js");
 var _vector = require("../utils/Vector");
 var _controls = require("../Controls");
 var _controlsDefault = parcelHelpers.interopDefault(_controls);
-const MAX_AFTERBURNER = 100;
+var _consts = require("../consts");
 class Player extends (0, _pixiJs.Container) {
     constructor(room, imageURL){
         super();
@@ -38106,7 +38115,7 @@ class Player extends (0, _pixiJs.Container) {
         this.rcsBroken = false;
         this.gyroOn = true;
         this.gyroBroken = false;
-        this.speed = 200;
+        this.speed = (0, _consts.SPEED);
         this.afterburner = 100;
         this._room = room;
         this.velocity = new (0, _vector.Vector)(0, 0);
@@ -38169,29 +38178,29 @@ class Player extends (0, _pixiJs.Container) {
         if ((0, _controlsDefault.default).instance.keyboard["s"] === (0, _controls.KeyState).HELD) d.y += 1;
         if ((0, _controlsDefault.default).instance.keyboard["d"] === (0, _controls.KeyState).HELD) d.x += 1;
         if ((0, _controlsDefault.default).instance.keyboard[" "] === (0, _controls.KeyState).HELD && this.afterburner > 0) {
-            if (this.afterburner > 1) this.speed = 600;
+            if (this.afterburner > 1) this.speed = (0, _consts.AFTERBURNER_SPEED);
             this.afterburner -= dt / 2;
         } else {
-            this.speed = 200;
-            if (this.afterburner < MAX_AFTERBURNER) this.afterburner += dt / 4;
+            this.speed = (0, _consts.SPEED);
+            if (this.afterburner < (0, _consts.MAX_AFTERBURNER)) this.afterburner += dt / 4;
         }
         if ((0, _controlsDefault.default).instance.keyboard["e"] === (0, _controls.KeyState).PRESSED) this.engOn = !this.engOn;
         if ((0, _controlsDefault.default).instance.keyboard["r"] === (0, _controls.KeyState).PRESSED) this.rcsOn = !this.rcsOn;
         if ((0, _controlsDefault.default).instance.keyboard["g"] === (0, _controls.KeyState).PRESSED) this.gyroOn = !this.gyroOn;
-        this.jetL.scale.y = -0.4 * d.y * this.speed / 200 + d.x * 0.1 + Math.random() / 20 + 0.1;
-        this.jetR.scale.y = -0.4 * d.y * this.speed / 200 - d.x * 0.1 + Math.random() / 20 + 0.1;
+        this.jetL.scale.y = -0.4 * d.y * this.speed / (0, _consts.SPEED) + d.x * 0.1 + Math.random() / 20 + 0.1;
+        this.jetR.scale.y = -0.4 * d.y * this.speed / (0, _consts.SPEED) - d.x * 0.1 + Math.random() / 20 + 0.1;
         this.jetL.alpha = 0.75 + Math.random() / 4;
         this.jetR.alpha = 0.75 + Math.random() / 4;
-        if (d.x && this.engOn && !this.engBroken) this.angularVelocity = this.angularVelocity * 0.99 + d.x * dt * 0.1;
-        else if (this.gyroOn && !this.gyroBroken) this.angularVelocity *= 0.95;
+        if (d.x && this.engOn && !this.engBroken) this.angularVelocity = this.angularVelocity - this.angularVelocity * 0.01 * dt + d.x * dt * 0.1;
+        else if (this.gyroOn && !this.gyroBroken) this.angularVelocity -= this.angularVelocity * 0.1 * dt;
         if (!this.engOn || this.engBroken) {
             this.jetL.alpha = 0;
             this.jetR.alpha = 0;
         }
         this.graphics.angle = (this.graphics.angle + this.angularVelocity * dt) % 360;
         this.healthBar.width = this.health * 1.5;
-        if (d.y && this.engOn && !this.engBroken) this.velocity = new (0, _vector.Vector)(this.velocity.x * 0.998 + this.speed * d.y * dt * Math.cos(this.graphics.rotation), this.velocity.y * 0.998 + this.speed * d.y * dt * Math.sin(this.graphics.rotation));
-        else if (this.rcsOn && !this.rcsBroken && this.engOn && !this.engBroken) this.velocity = new (0, _vector.Vector)(this.velocity.x * 0.99, this.velocity.y * 0.99);
+        if (d.y && this.engOn && !this.engBroken) this.velocity = new (0, _vector.Vector)(this.velocity.x - this.velocity.x * (0, _consts.SPEED_DAMPENING) * dt + this.speed * d.y * dt * Math.cos(this.graphics.rotation), this.velocity.y - this.velocity.y * (0, _consts.SPEED_DAMPENING) * dt + this.speed * d.y * dt * Math.sin(this.graphics.rotation));
+        else if (this.rcsOn && !this.rcsBroken && this.engOn && !this.engBroken) this.velocity = new (0, _vector.Vector)(this.velocity.x - this.velocity.x * (0, _consts.RCS_DAMPENING) * dt, this.velocity.y - this.velocity.y * (0, _consts.RCS_DAMPENING) * dt);
         this.x = this.x + this.velocity.x * dt / 1000;
         this.y = this.y + this.velocity.y * dt / 1000;
         this._room.send({
@@ -38215,7 +38224,7 @@ class Player extends (0, _pixiJs.Container) {
 }
 exports.default = Player;
 
-},{"pixi.js":"50mJo","../utils/Vector":"47iGf","../Controls":"8qatZ","c778f937de3c39cf":"9DXF3","8fcaa877b91c53fb":"lJA5a","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"9DXF3":[function(require,module,exports) {
+},{"pixi.js":"50mJo","../utils/Vector":"47iGf","../Controls":"8qatZ","c778f937de3c39cf":"9DXF3","8fcaa877b91c53fb":"lJA5a","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz","../consts":"7htQN"}],"9DXF3":[function(require,module,exports) {
 module.exports = require("25043ac118bdc5c8").getBundleURL("jY4eA") + "jet.0deac52b.png" + "?" + Date.now();
 
 },{"25043ac118bdc5c8":"b0ReP"}],"b0ReP":[function(require,module,exports) {
@@ -38256,7 +38265,27 @@ exports.getOrigin = getOrigin;
 },{}],"lJA5a":[function(require,module,exports) {
 module.exports = require("54d330ac088c08f0").getBundleURL("jY4eA") + "long-ray.d7a4554b.png" + "?" + Date.now();
 
-},{"54d330ac088c08f0":"b0ReP"}],"hRcs9":[function(require,module,exports) {
+},{"54d330ac088c08f0":"b0ReP"}],"7htQN":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "WINDOW_WIDTH", ()=>WINDOW_WIDTH);
+parcelHelpers.export(exports, "WINDOW_HEIGHT", ()=>WINDOW_HEIGHT);
+parcelHelpers.export(exports, "SPEED_ZOOM_FACTOR", ()=>SPEED_ZOOM_FACTOR);
+parcelHelpers.export(exports, "SPEED", ()=>SPEED);
+parcelHelpers.export(exports, "AFTERBURNER_SPEED", ()=>AFTERBURNER_SPEED);
+parcelHelpers.export(exports, "MAX_AFTERBURNER", ()=>MAX_AFTERBURNER);
+parcelHelpers.export(exports, "RCS_DAMPENING", ()=>RCS_DAMPENING);
+parcelHelpers.export(exports, "SPEED_DAMPENING", ()=>SPEED_DAMPENING);
+const WINDOW_WIDTH = 1280;
+const WINDOW_HEIGHT = 720;
+const SPEED_ZOOM_FACTOR = 5000;
+const SPEED = 200;
+const AFTERBURNER_SPEED = 600;
+const MAX_AFTERBURNER = 100;
+const RCS_DAMPENING = 0.02;
+const SPEED_DAMPENING = 0.005;
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"hRcs9":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _pixiJs = require("pixi.js");
@@ -38287,16 +38316,6 @@ const isIUpdate = (object)=>{
     return object.update !== undefined;
 };
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"7htQN":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "WINDOW_WIDTH", ()=>WINDOW_WIDTH);
-parcelHelpers.export(exports, "WINDOW_HEIGHT", ()=>WINDOW_HEIGHT);
-parcelHelpers.export(exports, "SPEED_ZOOM_FACTOR", ()=>SPEED_ZOOM_FACTOR);
-const WINDOW_WIDTH = 1280;
-const WINDOW_HEIGHT = 720;
-const SPEED_ZOOM_FACTOR = 5000;
-
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"6Mk9B":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
@@ -38311,6 +38330,7 @@ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _pixiJs = require("pixi.js");
 var _vector = require("../utils/Vector");
+var _consts = require("../consts");
 class Enemy extends (0, _pixiJs.Container) {
     constructor(imageURL){
         super();
@@ -38367,8 +38387,8 @@ class Enemy extends (0, _pixiJs.Container) {
         this.addChild(this.healthBar);
     }
     update(dt) {
-        this.jetL.scale.y = -0.4 * this.d.y * this.speed / 200 + this.d.x * 0.1 + Math.random() / 20 + 0.1;
-        this.jetR.scale.y = -0.4 * this.d.y * this.speed / 200 - this.d.x * 0.1 + Math.random() / 20 + 0.1;
+        this.jetL.scale.y = -0.4 * this.d.y * this.speed / (0, _consts.SPEED) + this.d.x * 0.1 + Math.random() / 20 + 0.1;
+        this.jetR.scale.y = -0.4 * this.d.y * this.speed / (0, _consts.SPEED) - this.d.x * 0.1 + Math.random() / 20 + 0.1;
         this.jetL.alpha = 0.75 + Math.random() / 4;
         this.jetR.alpha = 0.75 + Math.random() / 4;
         if (!this.engine) {
@@ -38382,7 +38402,7 @@ class Enemy extends (0, _pixiJs.Container) {
 }
 exports.default = Enemy;
 
-},{"pixi.js":"50mJo","../utils/Vector":"47iGf","355511b42bcae109":"9DXF3","9f2139e6c83fffd6":"lJA5a","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"haTrm":[function(require,module,exports) {
+},{"pixi.js":"50mJo","../utils/Vector":"47iGf","355511b42bcae109":"9DXF3","9f2139e6c83fffd6":"lJA5a","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz","../consts":"7htQN"}],"haTrm":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _pixiJs = require("pixi.js");
