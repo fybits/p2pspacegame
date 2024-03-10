@@ -3,8 +3,8 @@ import { Vector } from "../utils/Vector";
 import Controls, { KeyState } from "../Controls";
 import { PeerRoom } from "../PeerRoom";
 import IUpdate from "./IUpdate";
+import { SPEED, AFTERBURNER_SPEED, MAX_AFTERBURNER, SPEED_DAMPENING, RCS_DAMPENING } from "../consts";
 
-const MAX_AFTERBURNER = 100;
 export default class Player extends Container implements IUpdate {
     health = 100;
     velocity: Vector;
@@ -16,7 +16,7 @@ export default class Player extends Container implements IUpdate {
     rcsBroken: boolean = false;
     gyroOn: boolean = true;
     gyroBroken: boolean = false;
-    speed: number = 200;
+    speed: number = SPEED;
     afterburner: number = 100;
 
     private jetL: Sprite;
@@ -86,11 +86,11 @@ export default class Player extends Container implements IUpdate {
 
         if (Controls.instance.keyboard[' '] === KeyState.HELD && this.afterburner > 0) {
             if (this.afterburner > 1) {
-                this.speed = 600;
+                this.speed = AFTERBURNER_SPEED;
             }
             this.afterburner -= dt / 2;
         } else {
-            this.speed = 200;
+            this.speed = SPEED;
             if (this.afterburner < MAX_AFTERBURNER)
                 this.afterburner += dt / 4;
         }
@@ -107,15 +107,15 @@ export default class Player extends Container implements IUpdate {
             this.gyroOn = !this.gyroOn;
         }
 
-        this.jetL.scale.y = -0.4 * d.y * this.speed / 200 + d.x * 0.1 + Math.random() / 20 + 0.1;
-        this.jetR.scale.y = -0.4 * d.y * this.speed / 200 - d.x * 0.1 + Math.random() / 20 + 0.1;
+        this.jetL.scale.y = -0.4 * d.y * this.speed / SPEED + d.x * 0.1 + Math.random() / 20 + 0.1;
+        this.jetR.scale.y = -0.4 * d.y * this.speed / SPEED - d.x * 0.1 + Math.random() / 20 + 0.1;
         this.jetL.alpha = 0.75 + Math.random() / 4;
         this.jetR.alpha = 0.75 + Math.random() / 4;
 
         if (d.x && this.engOn && !this.engBroken) {
-            this.angularVelocity = this.angularVelocity * 0.99 + d.x * dt * 0.1;
+            this.angularVelocity = this.angularVelocity - this.angularVelocity * 0.01 * dt + d.x * dt * 0.1;
         } else if (this.gyroOn && !this.gyroBroken) {
-            this.angularVelocity *= 0.95
+            this.angularVelocity -= this.angularVelocity * 0.1 * dt;
         }
 
         if (!this.engOn || this.engBroken) {
@@ -128,13 +128,12 @@ export default class Player extends Container implements IUpdate {
 
         if (d.y && this.engOn && !this.engBroken) {
             this.velocity = new Vector(
-                this.velocity.x * 0.998 + this.speed * d.y * dt * Math.cos(this.graphics.rotation),
-                this.velocity.y * 0.998 + this.speed * d.y * dt * Math.sin(this.graphics.rotation)
+                this.velocity.x - this.velocity.x * SPEED_DAMPENING * dt + this.speed * d.y * dt * Math.cos(this.graphics.rotation),
+                this.velocity.y - this.velocity.y * SPEED_DAMPENING * dt + this.speed * d.y * dt * Math.sin(this.graphics.rotation)
             );
         } else if (this.rcsOn && !this.rcsBroken && this.engOn && !this.engBroken) {
-            this.velocity = new Vector(this.velocity.x * 0.99, this.velocity.y * 0.99);
+            this.velocity = new Vector(this.velocity.x - this.velocity.x * RCS_DAMPENING * dt, this.velocity.y - this.velocity.y * RCS_DAMPENING * dt);
         }
-
         this.x = this.x + this.velocity.x * dt / 1000;
         this.y = this.y + this.velocity.y * dt / 1000;
 

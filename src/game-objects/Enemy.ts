@@ -2,6 +2,7 @@ import { Container, Sprite, Texture, TilingSprite } from "pixi.js";
 import { Vector } from "../utils/Vector";
 import Controls from "../Controls";
 import IUpdate from "./IUpdate";
+import { SPEED } from "../consts";
 
 export default class Enemy extends Container implements IUpdate {
     velocity: Vector;
@@ -64,8 +65,8 @@ export default class Enemy extends Container implements IUpdate {
 
     update(dt: number) {
 
-        this.jetL.scale.y = -0.4 * this.d.y * this.speed / 200 + this.d.x * 0.1 + Math.random() / 20 + 0.1;
-        this.jetR.scale.y = -0.4 * this.d.y * this.speed / 200 - this.d.x * 0.1 + Math.random() / 20 + 0.1;
+        this.jetL.scale.y = -0.4 * this.d.y * this.speed / SPEED + this.d.x * 0.1 + Math.random() / 20 + 0.1;
+        this.jetR.scale.y = -0.4 * this.d.y * this.speed / SPEED - this.d.x * 0.1 + Math.random() / 20 + 0.1;
         this.jetL.alpha = 0.75 + Math.random() / 4;
         this.jetR.alpha = 0.75 + Math.random() / 4;
 
