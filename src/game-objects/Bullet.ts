@@ -1,6 +1,7 @@
 import { Assets, Sprite, Texture } from "pixi.js";
 import { Vector } from "../utils/Vector";
 import IUpdate from "./IUpdate";
+import { AssetKey } from "../consts";
 
 const speed = 150;
 
@@ -10,7 +11,7 @@ export default class Bullet extends Sprite implements IUpdate {
     id: number;
 
     constructor(position: Vector, velocity: Vector, angle: number, owner: string, id: number) {
-        super(Assets.cache.get<Texture>(new URL("/src/imgs/long-ray.png", import.meta.url).toString()));
+        super(Texture.from(AssetKey.Bullet));
         this.position = position;
         this.velocity = velocity;
         this.angle = angle + 90;

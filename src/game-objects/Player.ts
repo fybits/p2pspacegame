@@ -3,7 +3,7 @@ import { Vector } from "../utils/Vector";
 import Controls, { KeyState } from "../Controls";
 import { PeerRoom } from "../PeerRoom";
 import IUpdate from "./IUpdate";
-import { SPEED, AFTERBURNER_SPEED, MAX_AFTERBURNER, SPEED_DAMPENING, RCS_DAMPENING } from "../consts";
+import { SPEED, AFTERBURNER_SPEED, MAX_AFTERBURNER, SPEED_DAMPENING, RCS_DAMPENING, AssetKey } from "../consts";
 
 export default class Player extends Container implements IUpdate {
     health = 100;
@@ -24,12 +24,12 @@ export default class Player extends Container implements IUpdate {
     private _room: PeerRoom;
     private healthBar: TilingSprite;
 
-    constructor(room: PeerRoom, imageURL: string) {
+    constructor(room: PeerRoom, assetKey: AssetKey) {
         super();
         this._room = room;
         this.velocity = new Vector(0, 0);
 
-        const texture = Texture.from(imageURL);
+        const texture = Texture.from(assetKey);
         texture.rotate = 2;
         const playerSprite = new Sprite(texture);
         this.graphics = playerSprite;
@@ -37,7 +37,7 @@ export default class Player extends Container implements IUpdate {
         this.graphics.anchor.y = 0.5;
         this.addChild(this.graphics)
 
-        const jetTexture = Texture.from(new URL("/src/imgs/jet.png", import.meta.url).toString());
+        const jetTexture = Texture.from(AssetKey.Jet);
         this.jetL = new Sprite(jetTexture);
         this.jetL.angle = -90;
         this.jetL.anchor.x = 0.5;
@@ -56,7 +56,7 @@ export default class Player extends Container implements IUpdate {
         this.jetR.scale.set(0.4, 0.5);
         this.graphics.addChild(this.jetR);
 
-        const bulletTexture = Texture.from(new URL("/src/imgs/long-ray.png", import.meta.url).toString());
+        const bulletTexture = Texture.from(AssetKey.Bullet);
         this.healthBar = new TilingSprite(bulletTexture, this.health * 1.5, 16);
         this.healthBar.tileScale = { x: 0.2, y: 0.1 };
         this.healthBar.position = { x: -75, y: -90 };

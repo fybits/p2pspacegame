@@ -6,7 +6,7 @@ import Player from './game-objects/Player';
 import Bullet from './game-objects/Bullet';
 import Camera from './game-objects/Camera';
 import { isIUpdate } from './game-objects/IUpdate';
-import { SPEED_ZOOM_FACTOR, WINDOW_HEIGHT, WINDOW_WIDTH } from './consts';
+import { AssetKey, SPEED_ZOOM_FACTOR, WINDOW_HEIGHT, WINDOW_WIDTH } from './consts';
 import { sortedClamp } from './utils';
 import Enemy from './game-objects/Enemy';
 import UI from './game-objects/UI';
@@ -60,7 +60,7 @@ export default class GameManager {
             enemy.engine = message.engine;
             enemy.speed = message.speed;
         } else {
-            const enemy = new Enemy(new URL("/src/imgs/spaceship_sprite.png", import.meta.url).toString());
+            const enemy = new Enemy(AssetKey.Spaceship);
             this.enemies.set(address, enemy);
             this.camera.addChild(enemy);
         }
@@ -135,11 +135,19 @@ export default class GameManager {
         this.room.send({ type: 'bullet-shot', message: bulletData })
     }
 
+    async loadAssets() {
+        Assets.add(({ alias: AssetKey.Spaceship, src: new URL("/src/imgs/spaceship_sprite.png", import.meta.url).toString() }));
+        Assets.add(({ alias: AssetKey.Bullet, src: new URL("/src/imgs/long-ray.png", import.meta.url).toString() }));
+        Assets.add(({ alias: AssetKey.Jet, src: new URL("/src/imgs/jet.png", import.meta.url).toString() }));
+        await Assets.load([AssetKey.Spaceship, AssetKey.Bullet, AssetKey.Jet]);
+    }
+
 
     async startGame() {
-        this.player = new Player(this.room, new URL("/src/imgs/spaceship_sprite.png", import.meta.url).toString());
         // Preload textures
-        await Assets.load(new URL("/src/imgs/long-ray.png", import.meta.url).toString());
+        await this.loadAssets();
+
+        this.player = new Player(this.room, AssetKey.Spaceship);
 
         this.camera.addChild(this.player);
 

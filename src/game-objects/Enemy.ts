@@ -2,7 +2,7 @@ import { Container, Sprite, Texture, TilingSprite } from "pixi.js";
 import { Vector } from "../utils/Vector";
 import Controls from "../Controls";
 import IUpdate from "./IUpdate";
-import { SPEED } from "../consts";
+import { AssetKey, SPEED } from "../consts";
 
 export default class Enemy extends Container implements IUpdate {
     velocity: Vector;
@@ -16,18 +16,18 @@ export default class Enemy extends Container implements IUpdate {
     private jetL: Sprite;
     private jetR: Sprite;
 
-    constructor(imageURL: string) {
+    constructor(assetKey: AssetKey) {
         super();
         this.velocity = new Vector(0, 0);
         this.d = new Vector(0, 0);
 
-        this.graphics = new Sprite(Texture.from(imageURL));
+        this.graphics = new Sprite(Texture.from(assetKey));
         this.graphics.anchor.x = 0.5;
         this.graphics.anchor.y = 0.5;
         this.graphics.tint = 0xff0000;
         this.addChild(this.graphics);
 
-        const jetTexture = Texture.from(new URL("/src/imgs/jet.png", import.meta.url).toString());
+        const jetTexture = Texture.from(AssetKey.Jet);
         this.jetL = new Sprite(jetTexture);
         this.jetL.angle = -90;
         this.jetL.anchor.x = 0.5;
@@ -46,7 +46,7 @@ export default class Enemy extends Container implements IUpdate {
         this.jetR.scale.set(0.4, 0.5);
         this.graphics.addChild(this.jetR);
 
-        const bulletTexture = Texture.from(new URL("/src/imgs/long-ray.png", import.meta.url).toString());
+        const bulletTexture = Texture.from(AssetKey.Bullet);
         this.healthBar = new TilingSprite(bulletTexture, this.health * 1.5, 16);
         this.healthBar.tileScale = { x: 0.2, y: 0.1 };
         this.healthBar.position = { x: -75, y: -90 };

@@ -8,3 +8,8 @@ export const MAX_AFTERBURNER = 100;
 export const RCS_DAMPENING = 0.02;
 export const SPEED_DAMPENING = 0.005;
 
+export enum AssetKey {
+    Bullet = 'bullet',
+    Spaceship = 'spaceship',
+    Jet = 'jet',
+}

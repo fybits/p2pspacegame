@@ -20,7 +20,7 @@ export class PeerRoom {
 
     constructor(private userId: string) {
         this.peer = new Peer(userId);
-        this.peer.on('error', (err) => { reportError(err.message) })
+        this.peer.on('error', (err) => { reportError(`${err.name}: ${err.message} [${err.type}]`) })
         this.peer.on('connection', (member) => this.addDataConnectionEventHandlers(member));
         window.addEventListener('beforeunload', this.unloadListener)
     }
