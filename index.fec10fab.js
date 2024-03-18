@@ -2966,7 +2966,7 @@ exports.resolveObject = urlResolveObject;
 exports.format = urlFormat;
 exports.Url = Url;
 
-},{"eef2836b3fd70ef8":"krmh6","6d00379d0cbc8a01":"j4GD7"}],"krmh6":[function(require,module,exports) {
+},{"eef2836b3fd70ef8":"krmh6","6d00379d0cbc8a01":"hYot0"}],"krmh6":[function(require,module,exports) {
 var global = arguments[3];
 (function(root) {
     /** Detect free variables */ var freeExports = exports && !exports.nodeType && exports;
@@ -3295,22 +3295,22 @@ var global = arguments[3];
     root.punycode = punycode;
 })(this);
 
-},{}],"j4GD7":[function(require,module,exports) {
+},{}],"hYot0":[function(require,module,exports) {
 "use strict";
-var stringify = require("26380e86b1f17764");
-var parse = require("5680061fbf1e995e");
-var formats = require("df2723083cc441ae");
+var stringify = require("df882e511dad5f41");
+var parse = require("f69d27158036f641");
+var formats = require("b48de49b78c2276f");
 module.exports = {
     formats: formats,
     parse: parse,
     stringify: stringify
 };
 
-},{"26380e86b1f17764":"b5Otk","5680061fbf1e995e":"jRUGo","df2723083cc441ae":"7tD6u"}],"b5Otk":[function(require,module,exports) {
+},{"df882e511dad5f41":"5dBIx","f69d27158036f641":"5gzrn","b48de49b78c2276f":"bQIzF"}],"5dBIx":[function(require,module,exports) {
 "use strict";
-var getSideChannel = require("65aa783a7ce7af00");
-var utils = require("666fc791e529450c");
-var formats = require("aef8022b997a417c");
+var getSideChannel = require("f429a699c99e587a");
+var utils = require("4047a622b1a7f836");
+var formats = require("cc1dcdb7f32f4b95");
 var has = Object.prototype.hasOwnProperty;
 var arrayPrefixGenerators = {
     brackets: function brackets(prefix) {
@@ -3336,10 +3336,13 @@ var defaultFormat = formats["default"];
 var defaults = {
     addQueryPrefix: false,
     allowDots: false,
+    allowEmptyArrays: false,
+    arrayFormat: "indices",
     charset: "utf-8",
     charsetSentinel: false,
     delimiter: "&",
     encode: true,
+    encodeDotInKeys: false,
     encoder: utils.encode,
     encodeValuesOnly: false,
     format: defaultFormat,
@@ -3356,7 +3359,7 @@ var isNonNullishPrimitive = function isNonNullishPrimitive(v) {
     return typeof v === "string" || typeof v === "number" || typeof v === "boolean" || typeof v === "symbol" || typeof v === "bigint";
 };
 var sentinel = {};
-var stringify = function stringify(object, prefix, generateArrayPrefix, commaRoundTrip, strictNullHandling, skipNulls, encoder, filter, sort, allowDots, serializeDate, format, formatter, encodeValuesOnly, charset, sideChannel) {
+var stringify = function stringify(object, prefix, generateArrayPrefix, commaRoundTrip, allowEmptyArrays, strictNullHandling, skipNulls, encodeDotInKeys, encoder, filter, sort, allowDots, serializeDate, format, formatter, encodeValuesOnly, charset, sideChannel) {
     var obj = object;
     var tmpSc = sideChannel;
     var step = 0;
@@ -3408,21 +3411,26 @@ var stringify = function stringify(object, prefix, generateArrayPrefix, commaRou
         var keys = Object.keys(obj);
         objKeys = sort ? keys.sort(sort) : keys;
     }
-    var adjustedPrefix = commaRoundTrip && isArray(obj) && obj.length === 1 ? prefix + "[]" : prefix;
+    var encodedPrefix = encodeDotInKeys ? prefix.replace(/\./g, "%2E") : prefix;
+    var adjustedPrefix = commaRoundTrip && isArray(obj) && obj.length === 1 ? encodedPrefix + "[]" : encodedPrefix;
+    if (allowEmptyArrays && isArray(obj) && obj.length === 0) return adjustedPrefix + "[]";
     for(var j = 0; j < objKeys.length; ++j){
         var key = objKeys[j];
         var value = typeof key === "object" && typeof key.value !== "undefined" ? key.value : obj[key];
         if (skipNulls && value === null) continue;
-        var keyPrefix = isArray(obj) ? typeof generateArrayPrefix === "function" ? generateArrayPrefix(adjustedPrefix, key) : adjustedPrefix : adjustedPrefix + (allowDots ? "." + key : "[" + key + "]");
+        var encodedKey = allowDots && encodeDotInKeys ? key.replace(/\./g, "%2E") : key;
+        var keyPrefix = isArray(obj) ? typeof generateArrayPrefix === "function" ? generateArrayPrefix(adjustedPrefix, encodedKey) : adjustedPrefix : adjustedPrefix + (allowDots ? "." + encodedKey : "[" + encodedKey + "]");
         sideChannel.set(object, step);
         var valueSideChannel = getSideChannel();
         valueSideChannel.set(sentinel, sideChannel);
-        pushToArray(values, stringify(value, keyPrefix, generateArrayPrefix, commaRoundTrip, strictNullHandling, skipNulls, generateArrayPrefix === "comma" && encodeValuesOnly && isArray(obj) ? null : encoder, filter, sort, allowDots, serializeDate, format, formatter, encodeValuesOnly, charset, valueSideChannel));
+        pushToArray(values, stringify(value, keyPrefix, generateArrayPrefix, commaRoundTrip, allowEmptyArrays, strictNullHandling, skipNulls, encodeDotInKeys, generateArrayPrefix === "comma" && encodeValuesOnly && isArray(obj) ? null : encoder, filter, sort, allowDots, serializeDate, format, formatter, encodeValuesOnly, charset, valueSideChannel));
     }
     return values;
 };
 var normalizeStringifyOptions = function normalizeStringifyOptions(opts) {
     if (!opts) return defaults;
+    if (typeof opts.allowEmptyArrays !== "undefined" && typeof opts.allowEmptyArrays !== "boolean") throw new TypeError("`allowEmptyArrays` option can only be `true` or `false`, when provided");
+    if (typeof opts.encodeDotInKeys !== "undefined" && typeof opts.encodeDotInKeys !== "boolean") throw new TypeError("`encodeDotInKeys` option can only be `true` or `false`, when provided");
     if (opts.encoder !== null && typeof opts.encoder !== "undefined" && typeof opts.encoder !== "function") throw new TypeError("Encoder has to be a function.");
     var charset = opts.charset || defaults.charset;
     if (typeof opts.charset !== "undefined" && opts.charset !== "utf-8" && opts.charset !== "iso-8859-1") throw new TypeError("The charset option must be either utf-8, iso-8859-1, or undefined");
@@ -3434,13 +3442,23 @@ var normalizeStringifyOptions = function normalizeStringifyOptions(opts) {
     var formatter = formats.formatters[format];
     var filter = defaults.filter;
     if (typeof opts.filter === "function" || isArray(opts.filter)) filter = opts.filter;
+    var arrayFormat;
+    if (opts.arrayFormat in arrayPrefixGenerators) arrayFormat = opts.arrayFormat;
+    else if ("indices" in opts) arrayFormat = opts.indices ? "indices" : "repeat";
+    else arrayFormat = defaults.arrayFormat;
+    if ("commaRoundTrip" in opts && typeof opts.commaRoundTrip !== "boolean") throw new TypeError("`commaRoundTrip` must be a boolean, or absent");
+    var allowDots = typeof opts.allowDots === "undefined" ? opts.encodeDotInKeys === true ? true : defaults.allowDots : !!opts.allowDots;
     return {
         addQueryPrefix: typeof opts.addQueryPrefix === "boolean" ? opts.addQueryPrefix : defaults.addQueryPrefix,
-        allowDots: typeof opts.allowDots === "undefined" ? defaults.allowDots : !!opts.allowDots,
+        allowDots: allowDots,
+        allowEmptyArrays: typeof opts.allowEmptyArrays === "boolean" ? !!opts.allowEmptyArrays : defaults.allowEmptyArrays,
+        arrayFormat: arrayFormat,
         charset: charset,
         charsetSentinel: typeof opts.charsetSentinel === "boolean" ? opts.charsetSentinel : defaults.charsetSentinel,
+        commaRoundTrip: opts.commaRoundTrip,
         delimiter: typeof opts.delimiter === "undefined" ? defaults.delimiter : opts.delimiter,
         encode: typeof opts.encode === "boolean" ? opts.encode : defaults.encode,
+        encodeDotInKeys: typeof opts.encodeDotInKeys === "boolean" ? opts.encodeDotInKeys : defaults.encodeDotInKeys,
         encoder: typeof opts.encoder === "function" ? opts.encoder : defaults.encoder,
         encodeValuesOnly: typeof opts.encodeValuesOnly === "boolean" ? opts.encodeValuesOnly : defaults.encodeValuesOnly,
         filter: filter,
@@ -3466,20 +3484,15 @@ module.exports = function(object, opts) {
     }
     var keys = [];
     if (typeof obj !== "object" || obj === null) return "";
-    var arrayFormat;
-    if (opts && opts.arrayFormat in arrayPrefixGenerators) arrayFormat = opts.arrayFormat;
-    else if (opts && "indices" in opts) arrayFormat = opts.indices ? "indices" : "repeat";
-    else arrayFormat = "indices";
-    var generateArrayPrefix = arrayPrefixGenerators[arrayFormat];
-    if (opts && "commaRoundTrip" in opts && typeof opts.commaRoundTrip !== "boolean") throw new TypeError("`commaRoundTrip` must be a boolean, or absent");
-    var commaRoundTrip = generateArrayPrefix === "comma" && opts && opts.commaRoundTrip;
+    var generateArrayPrefix = arrayPrefixGenerators[options.arrayFormat];
+    var commaRoundTrip = generateArrayPrefix === "comma" && options.commaRoundTrip;
     if (!objKeys) objKeys = Object.keys(obj);
     if (options.sort) objKeys.sort(options.sort);
     var sideChannel = getSideChannel();
     for(var i = 0; i < objKeys.length; ++i){
         var key = objKeys[i];
         if (options.skipNulls && obj[key] === null) continue;
-        pushToArray(keys, stringify(obj[key], key, generateArrayPrefix, commaRoundTrip, options.strictNullHandling, options.skipNulls, options.encode ? options.encoder : null, options.filter, options.sort, options.allowDots, options.serializeDate, options.format, options.formatter, options.encodeValuesOnly, options.charset, sideChannel));
+        pushToArray(keys, stringify(obj[key], key, generateArrayPrefix, commaRoundTrip, options.allowEmptyArrays, options.strictNullHandling, options.skipNulls, options.encodeDotInKeys, options.encode ? options.encoder : null, options.filter, options.sort, options.allowDots, options.serializeDate, options.format, options.formatter, options.encodeValuesOnly, options.charset, sideChannel));
     }
     var joined = keys.join(options.delimiter);
     var prefix = options.addQueryPrefix === true ? "?" : "";
@@ -3492,12 +3505,12 @@ module.exports = function(object, opts) {
     return joined.length > 0 ? prefix + joined : "";
 };
 
-},{"65aa783a7ce7af00":"6vy3c","666fc791e529450c":"eX78d","aef8022b997a417c":"7tD6u"}],"6vy3c":[function(require,module,exports) {
+},{"f429a699c99e587a":"bYqCa","4047a622b1a7f836":"3dwKw","cc1dcdb7f32f4b95":"bQIzF"}],"bYqCa":[function(require,module,exports) {
 "use strict";
-var GetIntrinsic = require("f53f3ae0093ccf0c");
-var callBound = require("98d0643c34c1d87f");
-var inspect = require("a0bcf850e32c6bdc");
-var $TypeError = require("94c74ddc8995629e");
+var GetIntrinsic = require("d780d4acef5acf82");
+var callBound = require("6c678037d89f344e");
+var inspect = require("3904c25ce11eb419");
+var $TypeError = require("c4f6c1f76c4c039f");
 var $WeakMap = GetIntrinsic("%WeakMap%", true);
 var $Map = GetIntrinsic("%Map%", true);
 var $weakMapGet = callBound("WeakMap.prototype.get", true);
@@ -3510,36 +3523,39 @@ var $mapHas = callBound("Map.prototype.has", true);
 * This function traverses the list returning the node corresponding to the given key.
 *
 * That node is also moved to the head of the list, so that if it's accessed again we don't need to traverse the whole list. By doing so, all the recently used nodes can be accessed relatively quickly.
-*/ var listGetNode = function(list, key) {
-    for(var prev = list, curr; (curr = prev.next) !== null; prev = curr)if (curr.key === key) {
+*/ /** @type {import('.').listGetNode} */ var listGetNode = function(list, key) {
+    /** @type {typeof list | NonNullable<(typeof list)['next']>} */ var prev = list;
+    /** @type {(typeof list)['next']} */ var curr;
+    for(; (curr = prev.next) !== null; prev = curr)if (curr.key === key) {
         prev.next = curr.next;
-        curr.next = list.next;
+        // eslint-disable-next-line no-extra-parens
+        curr.next = /** @type {NonNullable<typeof list.next>} */ list.next;
         list.next = curr; // eslint-disable-line no-param-reassign
         return curr;
     }
 };
-var listGet = function(objects, key) {
+/** @type {import('.').listGet} */ var listGet = function(objects, key) {
     var node = listGetNode(objects, key);
     return node && node.value;
 };
-var listSet = function(objects, key, value) {
+/** @type {import('.').listSet} */ var listSet = function(objects, key, value) {
     var node = listGetNode(objects, key);
     if (node) node.value = value;
     else // Prepend the new node to the beginning of the list
-    objects.next = {
+    objects.next = /** @type {import('.').ListNode<typeof value>} */ {
         key: key,
         next: objects.next,
         value: value
     };
 };
-var listHas = function(objects, key) {
+/** @type {import('.').listHas} */ var listHas = function(objects, key) {
     return !!listGetNode(objects, key);
 };
-module.exports = function getSideChannel() {
-    var $wm;
-    var $m;
-    var $o;
-    var channel = {
+/** @type {import('.')} */ module.exports = function getSideChannel() {
+    /** @type {WeakMap<object, unknown>} */ var $wm;
+    /** @type {Map<object, unknown>} */ var $m;
+    /** @type {import('.').RootNode<unknown>} */ var $o;
+    /** @type {import('.').Channel} */ var channel = {
         assert: function(key) {
             if (!channel.has(key)) throw new $TypeError("Side channel does not contain " + inspect(key));
         },
@@ -3582,7 +3598,7 @@ module.exports = function getSideChannel() {
     return channel;
 };
 
-},{"f53f3ae0093ccf0c":"lUwoz","98d0643c34c1d87f":"a0UYf","a0bcf850e32c6bdc":"bN3t8","94c74ddc8995629e":"bCi9D"}],"lUwoz":[function(require,module,exports) {
+},{"d780d4acef5acf82":"lUwoz","6c678037d89f344e":"a0UYf","3904c25ce11eb419":"bN3t8","c4f6c1f76c4c039f":"bCi9D"}],"lUwoz":[function(require,module,exports) {
 "use strict";
 var undefined1;
 var $Error = require("cbd2a8c6ea8b0374");
@@ -4030,7 +4046,7 @@ module.exports = function GetIntrinsic(name, allowMissing) {
     return value;
 };
 
-},{"cbd2a8c6ea8b0374":"aVaSi","29aa4d3f8dfd64a":"64AK3","175d0f0af06adec3":"dbhaK","6dd8142ee4face2a":"7x0EC","27d451c41acded":"jRZrG","162cf0535b7faa29":"bCi9D","cb4d7656f27defac":"ca21k","8af70e70521ef79e":"88u1L","883b9a32e4b74f22":"55YFq","ea25b5e6ec066ab7":"46RJE","d50cddc352b5f6b0":"2Zrxx"}],"aVaSi":[function(require,module,exports) {
+},{"cbd2a8c6ea8b0374":"aVaSi","29aa4d3f8dfd64a":"64AK3","175d0f0af06adec3":"dbhaK","6dd8142ee4face2a":"7x0EC","27d451c41acded":"jRZrG","162cf0535b7faa29":"bCi9D","cb4d7656f27defac":"ca21k","8af70e70521ef79e":"88u1L","883b9a32e4b74f22":"55YFq","ea25b5e6ec066ab7":"46RJE","d50cddc352b5f6b0":"bog0N"}],"aVaSi":[function(require,module,exports) {
 "use strict";
 /** @type {import('.')} */ module.exports = Error;
 
@@ -4173,14 +4189,14 @@ module.exports = function bind(that) {
     return bound;
 };
 
-},{}],"2Zrxx":[function(require,module,exports) {
+},{}],"bog0N":[function(require,module,exports) {
 "use strict";
 var call = Function.prototype.call;
 var $hasOwn = Object.prototype.hasOwnProperty;
-var bind = require("240d83ed75f425de");
+var bind = require("7e8329f900cfb3ac");
 /** @type {import('.')} */ module.exports = bind.call(call, $hasOwn);
 
-},{"240d83ed75f425de":"46RJE"}],"a0UYf":[function(require,module,exports) {
+},{"7e8329f900cfb3ac":"46RJE"}],"a0UYf":[function(require,module,exports) {
 "use strict";
 var GetIntrinsic = require("1ddbfac7ba6c37f8");
 var callBind = require("9831bb5b5de94f1");
@@ -4215,15 +4231,15 @@ if ($defineProperty) $defineProperty(module.exports, "apply", {
 });
 else module.exports.apply = applyBind;
 
-},{"61933cdd5d76f315":"46RJE","d54c4c5bdd3369ea":"lUwoz","34b5f39142542f48":"5vEKz","4a74274b68f304f9":"bCi9D","81865102d635732e":"78sVh"}],"5vEKz":[function(require,module,exports) {
+},{"61933cdd5d76f315":"46RJE","d54c4c5bdd3369ea":"lUwoz","34b5f39142542f48":"9kEJy","4a74274b68f304f9":"bCi9D","81865102d635732e":"78sVh"}],"9kEJy":[function(require,module,exports) {
 "use strict";
-var GetIntrinsic = require("f23238399923c1e0");
-var define = require("3203f116b5961222");
-var hasDescriptors = require("cc9f81d41ce7be8f")();
-var gOPD = require("e2563ec229511bc");
-var $TypeError = require("679dd7a90bca98ba");
+var GetIntrinsic = require("8cbbf7f6080b498a");
+var define = require("f8e58ce24243825d");
+var hasDescriptors = require("a9e405b5ddc5b9fd")();
+var gOPD = require("9dda572e6439e814");
+var $TypeError = require("f5eef7aaf4859a28");
 var $floor = GetIntrinsic("%Math.floor%");
-/** @typedef {(...args: unknown[]) => unknown} Func */ /** @type {<T extends Func = Func>(fn: T, length: number, loose?: boolean) => T} */ module.exports = function setFunctionLength(fn, length) {
+/** @type {import('.')} */ module.exports = function setFunctionLength(fn, length) {
     if (typeof fn !== "function") throw new $TypeError("`fn` is not a function");
     if (typeof length !== "number" || length < 0 || length > 0xFFFFFFFF || $floor(length) !== length) throw new $TypeError("`length` must be a positive 32-bit integer");
     var loose = arguments.length > 2 && !!arguments[2];
@@ -4241,7 +4257,7 @@ var $floor = GetIntrinsic("%Math.floor%");
     return fn;
 };
 
-},{"f23238399923c1e0":"lUwoz","3203f116b5961222":"7o1z4","cc9f81d41ce7be8f":"iL4YP","e2563ec229511bc":"d7o5S","679dd7a90bca98ba":"bCi9D"}],"7o1z4":[function(require,module,exports) {
+},{"8cbbf7f6080b498a":"lUwoz","f8e58ce24243825d":"7o1z4","a9e405b5ddc5b9fd":"iL4YP","9dda572e6439e814":"d7o5S","f5eef7aaf4859a28":"bCi9D"}],"7o1z4":[function(require,module,exports) {
 "use strict";
 var $defineProperty = require("72a9c8f484c70f61");
 var $SyntaxError = require("ec65c972ec0e2b73");
@@ -4705,9 +4721,9 @@ function arrObjKeys(obj, inspect) {
 },{"2b5a732f52cc97ef":"1iJo8"}],"1iJo8":[function(require,module,exports) {
 "use strict";
 
-},{}],"eX78d":[function(require,module,exports) {
+},{}],"3dwKw":[function(require,module,exports) {
 "use strict";
-var formats = require("d5a256f7e6f6368f");
+var formats = require("8aa8caa14d31187b");
 var has = Object.prototype.hasOwnProperty;
 var isArray = Array.isArray;
 var hexTable = function() {
@@ -4885,7 +4901,7 @@ module.exports = {
     merge: merge
 };
 
-},{"d5a256f7e6f6368f":"7tD6u"}],"7tD6u":[function(require,module,exports) {
+},{"8aa8caa14d31187b":"bQIzF"}],"bQIzF":[function(require,module,exports) {
 "use strict";
 var replace = String.prototype.replace;
 var percentTwenties = /%20/g;
@@ -4907,22 +4923,25 @@ module.exports = {
     RFC3986: Format.RFC3986
 };
 
-},{}],"jRUGo":[function(require,module,exports) {
+},{}],"5gzrn":[function(require,module,exports) {
 "use strict";
-var utils = require("7b2e2e5d2b11692e");
+var utils = require("b1d5c4e87126ee7c");
 var has = Object.prototype.hasOwnProperty;
 var isArray = Array.isArray;
 var defaults = {
     allowDots: false,
+    allowEmptyArrays: false,
     allowPrototypes: false,
     allowSparse: false,
     arrayLimit: 20,
     charset: "utf-8",
     charsetSentinel: false,
     comma: false,
+    decodeDotInKeys: true,
     decoder: utils.decode,
     delimiter: "&",
     depth: 5,
+    duplicates: "combine",
     ignoreQueryPrefix: false,
     interpretNumericEntities: false,
     parameterLimit: 1000,
@@ -4984,8 +5003,9 @@ var parseValues = function parseQueryStringValues(str, options) {
         if (part.indexOf("[]=") > -1) val = isArray(val) ? [
             val
         ] : val;
-        if (has.call(obj, key)) obj[key] = utils.combine(obj[key], val);
-        else obj[key] = val;
+        var existing = has.call(obj, key);
+        if (existing && options.duplicates === "combine") obj[key] = utils.combine(obj[key], val);
+        else if (!existing || options.duplicates === "last") obj[key] = val;
     }
     return obj;
 };
@@ -4994,18 +5014,19 @@ var parseObject = function(chain, val, options, valuesParsed) {
     for(var i = chain.length - 1; i >= 0; --i){
         var obj;
         var root = chain[i];
-        if (root === "[]" && options.parseArrays) obj = [].concat(leaf);
+        if (root === "[]" && options.parseArrays) obj = options.allowEmptyArrays && leaf === "" ? [] : [].concat(leaf);
         else {
             obj = options.plainObjects ? Object.create(null) : {};
             var cleanRoot = root.charAt(0) === "[" && root.charAt(root.length - 1) === "]" ? root.slice(1, -1) : root;
-            var index = parseInt(cleanRoot, 10);
-            if (!options.parseArrays && cleanRoot === "") obj = {
+            var decodedRoot = options.decodeDotInKeys ? cleanRoot.replace(/%2E/g, ".") : cleanRoot;
+            var index = parseInt(decodedRoot, 10);
+            if (!options.parseArrays && decodedRoot === "") obj = {
                 0: leaf
             };
-            else if (!isNaN(index) && root !== cleanRoot && String(index) === cleanRoot && index >= 0 && options.parseArrays && index <= options.arrayLimit) {
+            else if (!isNaN(index) && root !== decodedRoot && String(index) === decodedRoot && index >= 0 && options.parseArrays && index <= options.arrayLimit) {
                 obj = [];
                 obj[index] = leaf;
-            } else if (cleanRoot !== "__proto__") obj[cleanRoot] = leaf;
+            } else if (decodedRoot !== "__proto__") obj[decodedRoot] = leaf;
         }
         leaf = obj;
     }
@@ -5045,21 +5066,29 @@ var parseKeys = function parseQueryStringKeys(givenKey, val, options, valuesPars
 };
 var normalizeParseOptions = function normalizeParseOptions(opts) {
     if (!opts) return defaults;
-    if (opts.decoder !== null && opts.decoder !== undefined && typeof opts.decoder !== "function") throw new TypeError("Decoder has to be a function.");
+    if (typeof opts.allowEmptyArrays !== "undefined" && typeof opts.allowEmptyArrays !== "boolean") throw new TypeError("`allowEmptyArrays` option can only be `true` or `false`, when provided");
+    if (typeof opts.decodeDotInKeys !== "undefined" && typeof opts.decodeDotInKeys !== "boolean") throw new TypeError("`decodeDotInKeys` option can only be `true` or `false`, when provided");
+    if (opts.decoder !== null && typeof opts.decoder !== "undefined" && typeof opts.decoder !== "function") throw new TypeError("Decoder has to be a function.");
     if (typeof opts.charset !== "undefined" && opts.charset !== "utf-8" && opts.charset !== "iso-8859-1") throw new TypeError("The charset option must be either utf-8, iso-8859-1, or undefined");
     var charset = typeof opts.charset === "undefined" ? defaults.charset : opts.charset;
+    var duplicates = typeof opts.duplicates === "undefined" ? defaults.duplicates : opts.duplicates;
+    if (duplicates !== "combine" && duplicates !== "first" && duplicates !== "last") throw new TypeError("The duplicates option must be either combine, first, or last");
+    var allowDots = typeof opts.allowDots === "undefined" ? opts.decodeDotInKeys === true ? true : defaults.allowDots : !!opts.allowDots;
     return {
-        allowDots: typeof opts.allowDots === "undefined" ? defaults.allowDots : !!opts.allowDots,
+        allowDots: allowDots,
+        allowEmptyArrays: typeof opts.allowEmptyArrays === "boolean" ? !!opts.allowEmptyArrays : defaults.allowEmptyArrays,
         allowPrototypes: typeof opts.allowPrototypes === "boolean" ? opts.allowPrototypes : defaults.allowPrototypes,
         allowSparse: typeof opts.allowSparse === "boolean" ? opts.allowSparse : defaults.allowSparse,
         arrayLimit: typeof opts.arrayLimit === "number" ? opts.arrayLimit : defaults.arrayLimit,
         charset: charset,
         charsetSentinel: typeof opts.charsetSentinel === "boolean" ? opts.charsetSentinel : defaults.charsetSentinel,
         comma: typeof opts.comma === "boolean" ? opts.comma : defaults.comma,
+        decodeDotInKeys: typeof opts.decodeDotInKeys === "boolean" ? opts.decodeDotInKeys : defaults.decodeDotInKeys,
         decoder: typeof opts.decoder === "function" ? opts.decoder : defaults.decoder,
         delimiter: typeof opts.delimiter === "string" || utils.isRegExp(opts.delimiter) ? opts.delimiter : defaults.delimiter,
         // eslint-disable-next-line no-implicit-coercion, no-extra-parens
         depth: typeof opts.depth === "number" || opts.depth === false ? +opts.depth : defaults.depth,
+        duplicates: duplicates,
         ignoreQueryPrefix: opts.ignoreQueryPrefix === true,
         interpretNumericEntities: typeof opts.interpretNumericEntities === "boolean" ? opts.interpretNumericEntities : defaults.interpretNumericEntities,
         parameterLimit: typeof opts.parameterLimit === "number" ? opts.parameterLimit : defaults.parameterLimit,
@@ -5084,7 +5113,7 @@ module.exports = function(str, opts) {
     return utils.compact(obj);
 };
 
-},{"7b2e2e5d2b11692e":"eX78d"}],"9oQGp":[function(require,module,exports) {
+},{"b1d5c4e87126ee7c":"3dwKw"}],"9oQGp":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "deprecation", ()=>deprecation);
@@ -28039,7 +28068,7 @@ class PeerRoom {
         this.listeners = [];
         this.peer = new (0, _peerjs.Peer)(userId);
         this.peer.on("error", (err)=>{
-            (0, _app.reportError)(err.message);
+            (0, _app.reportError)(`${err.name}: ${err.message} [${err.type}]`);
         });
         this.peer.on("connection", (member)=>this.addDataConnectionEventHandlers(member));
         window.addEventListener("beforeunload", this.unloadListener);
@@ -28104,7 +28133,7 @@ class PeerRoom {
     }
 }
 
-},{"peerjs":"93qBa","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz","./app":"kuM8f"}],"93qBa":[function(require,module,exports) {
+},{"peerjs":"93qBa","./app":"kuM8f","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"93qBa":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "default", ()=>$dd0187d7f28e386f$export$2e2bcd8739ae039);
@@ -37937,7 +37966,7 @@ class GameManager {
             enemy.engine = message.engine;
             enemy.speed = message.speed;
         } else {
-            const enemy = new (0, _enemyDefault.default)(new URL(require("f87138cfe160a96d")).toString());
+            const enemy = new (0, _enemyDefault.default)((0, _consts.AssetKey).Spaceship);
             this.enemies.set(address, enemy);
             this.camera.addChild(enemy);
         }
@@ -38015,10 +38044,29 @@ class GameManager {
             message: bulletData
         });
     }
+    async loadAssets() {
+        (0, _pixiJs.Assets).add({
+            alias: (0, _consts.AssetKey).Spaceship,
+            src: new URL(require("f87138cfe160a96d")).toString()
+        });
+        (0, _pixiJs.Assets).add({
+            alias: (0, _consts.AssetKey).Bullet,
+            src: new URL(require("c2675bd49ac2f858")).toString()
+        });
+        (0, _pixiJs.Assets).add({
+            alias: (0, _consts.AssetKey).Jet,
+            src: new URL(require("d96c1433830a7d56")).toString()
+        });
+        await (0, _pixiJs.Assets).load([
+            (0, _consts.AssetKey).Spaceship,
+            (0, _consts.AssetKey).Bullet,
+            (0, _consts.AssetKey).Jet
+        ]);
+    }
     async startGame() {
-        this.player = new (0, _playerDefault.default)(this.room, new URL(require("f87138cfe160a96d")).toString());
         // Preload textures
-        await (0, _pixiJs.Assets).load(new URL(require("c2675bd49ac2f858")).toString());
+        await this.loadAssets();
+        this.player = new (0, _playerDefault.default)(this.room, (0, _consts.AssetKey).Spaceship);
         this.camera.addChild(this.player);
         const g = new (0, _pixiJs.Graphics)();
         starsBackground(g);
@@ -38096,7 +38144,7 @@ class GameManager {
 }
 exports.default = GameManager;
 
-},{"pixi.js":"50mJo","./utils/Vector":"47iGf","./Controls":"8qatZ","./game-objects/Player":"4bI0o","./game-objects/Bullet":"hRcs9","./game-objects/IUpdate":"jGXbG","./consts":"7htQN","./utils":"6Mk9B","./game-objects/Enemy":"csgB9","./game-objects/UI":"haTrm","f87138cfe160a96d":"3r5Yx","c2675bd49ac2f858":"lJA5a","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"4bI0o":[function(require,module,exports) {
+},{"pixi.js":"50mJo","./utils/Vector":"47iGf","./Controls":"8qatZ","./game-objects/Player":"4bI0o","./game-objects/Bullet":"hRcs9","./game-objects/IUpdate":"jGXbG","./consts":"7htQN","./utils":"6Mk9B","./game-objects/Enemy":"csgB9","./game-objects/UI":"haTrm","f87138cfe160a96d":"3r5Yx","c2675bd49ac2f858":"lJA5a","d96c1433830a7d56":"9DXF3","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"4bI0o":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _pixiJs = require("pixi.js");
@@ -38105,7 +38153,7 @@ var _controls = require("../Controls");
 var _controlsDefault = parcelHelpers.interopDefault(_controls);
 var _consts = require("../consts");
 class Player extends (0, _pixiJs.Container) {
-    constructor(room, imageURL){
+    constructor(room, assetKey){
         super();
         this.health = 100;
         this.angularVelocity = 0;
@@ -38119,14 +38167,14 @@ class Player extends (0, _pixiJs.Container) {
         this.afterburner = 100;
         this._room = room;
         this.velocity = new (0, _vector.Vector)(0, 0);
-        const texture = (0, _pixiJs.Texture).from(imageURL);
+        const texture = (0, _pixiJs.Texture).from(assetKey);
         texture.rotate = 2;
         const playerSprite = new (0, _pixiJs.Sprite)(texture);
         this.graphics = playerSprite;
         this.graphics.anchor.x = 0.5;
         this.graphics.anchor.y = 0.5;
         this.addChild(this.graphics);
-        const jetTexture = (0, _pixiJs.Texture).from(new URL(require("c778f937de3c39cf")).toString());
+        const jetTexture = (0, _pixiJs.Texture).from((0, _consts.AssetKey).Jet);
         this.jetL = new (0, _pixiJs.Sprite)(jetTexture);
         this.jetL.angle = -90;
         this.jetL.anchor.x = 0.5;
@@ -38143,7 +38191,7 @@ class Player extends (0, _pixiJs.Container) {
         this.jetR.y = -35;
         this.jetR.scale.set(0.4, 0.5);
         this.graphics.addChild(this.jetR);
-        const bulletTexture = (0, _pixiJs.Texture).from(new URL(require("8fcaa877b91c53fb")).toString());
+        const bulletTexture = (0, _pixiJs.Texture).from((0, _consts.AssetKey).Bullet);
         this.healthBar = new (0, _pixiJs.TilingSprite)(bulletTexture, this.health * 1.5, 16);
         this.healthBar.tileScale = {
             x: 0.2,
@@ -38224,48 +38272,7 @@ class Player extends (0, _pixiJs.Container) {
 }
 exports.default = Player;
 
-},{"pixi.js":"50mJo","../utils/Vector":"47iGf","../Controls":"8qatZ","c778f937de3c39cf":"9DXF3","8fcaa877b91c53fb":"lJA5a","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz","../consts":"7htQN"}],"9DXF3":[function(require,module,exports) {
-module.exports = require("25043ac118bdc5c8").getBundleURL("jY4eA") + "jet.0deac52b.png" + "?" + Date.now();
-
-},{"25043ac118bdc5c8":"b0ReP"}],"b0ReP":[function(require,module,exports) {
-"use strict";
-var bundleURL = {};
-function getBundleURLCached(id) {
-    var value = bundleURL[id];
-    if (!value) {
-        value = getBundleURL();
-        bundleURL[id] = value;
-    }
-    return value;
-}
-function getBundleURL() {
-    try {
-        throw new Error();
-    } catch (err) {
-        var matches = ("" + err.stack).match(/(https?|file|ftp|(chrome|moz|safari-web)-extension):\/\/[^)\n]+/g);
-        if (matches) // The first two stack frames will be this function and getBundleURLCached.
-        // Use the 3rd one, which will be a runtime in the original bundle.
-        return getBaseURL(matches[2]);
-    }
-    return "/";
-}
-function getBaseURL(url) {
-    return ("" + url).replace(/^((?:https?|file|ftp|(chrome|moz|safari-web)-extension):\/\/.+)\/[^/]+$/, "$1") + "/";
-}
-// TODO: Replace uses with `new URL(url).origin` when ie11 is no longer supported.
-function getOrigin(url) {
-    var matches = ("" + url).match(/(https?|file|ftp|(chrome|moz|safari-web)-extension):\/\/[^/]+/);
-    if (!matches) throw new Error("Origin not found");
-    return matches[0];
-}
-exports.getBundleURL = getBundleURLCached;
-exports.getBaseURL = getBaseURL;
-exports.getOrigin = getOrigin;
-
-},{}],"lJA5a":[function(require,module,exports) {
-module.exports = require("54d330ac088c08f0").getBundleURL("jY4eA") + "long-ray.d7a4554b.png" + "?" + Date.now();
-
-},{"54d330ac088c08f0":"b0ReP"}],"7htQN":[function(require,module,exports) {
+},{"pixi.js":"50mJo","../utils/Vector":"47iGf","../Controls":"8qatZ","../consts":"7htQN","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"7htQN":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "WINDOW_WIDTH", ()=>WINDOW_WIDTH);
@@ -38276,23 +38283,31 @@ parcelHelpers.export(exports, "AFTERBURNER_SPEED", ()=>AFTERBURNER_SPEED);
 parcelHelpers.export(exports, "MAX_AFTERBURNER", ()=>MAX_AFTERBURNER);
 parcelHelpers.export(exports, "RCS_DAMPENING", ()=>RCS_DAMPENING);
 parcelHelpers.export(exports, "SPEED_DAMPENING", ()=>SPEED_DAMPENING);
+parcelHelpers.export(exports, "AssetKey", ()=>AssetKey);
 const WINDOW_WIDTH = 1280;
 const WINDOW_HEIGHT = 720;
 const SPEED_ZOOM_FACTOR = 5000;
 const SPEED = 200;
 const AFTERBURNER_SPEED = 600;
 const MAX_AFTERBURNER = 100;
-const RCS_DAMPENING = 0.02;
+const RCS_DAMPENING = 0.03;
 const SPEED_DAMPENING = 0.005;
+var AssetKey;
+(function(AssetKey) {
+    AssetKey["Bullet"] = "bullet";
+    AssetKey["Spaceship"] = "spaceship";
+    AssetKey["Jet"] = "jet";
+})(AssetKey || (AssetKey = {}));
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"hRcs9":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _pixiJs = require("pixi.js");
+var _consts = require("../consts");
 const speed = 150;
 class Bullet extends (0, _pixiJs.Sprite) {
     constructor(position, velocity, angle, owner, id){
-        super((0, _pixiJs.Assets).cache.get(new URL(require("65c3665ffd5adba8")).toString()));
+        super((0, _pixiJs.Texture).from((0, _consts.AssetKey).Bullet));
         this.position = position;
         this.velocity = velocity;
         this.angle = angle + 90;
@@ -38308,7 +38323,7 @@ class Bullet extends (0, _pixiJs.Sprite) {
 }
 exports.default = Bullet;
 
-},{"pixi.js":"50mJo","65c3665ffd5adba8":"lJA5a","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"jGXbG":[function(require,module,exports) {
+},{"pixi.js":"50mJo","../consts":"7htQN","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"jGXbG":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "isIUpdate", ()=>isIUpdate);
@@ -38332,16 +38347,16 @@ var _pixiJs = require("pixi.js");
 var _vector = require("../utils/Vector");
 var _consts = require("../consts");
 class Enemy extends (0, _pixiJs.Container) {
-    constructor(imageURL){
+    constructor(assetKey){
         super();
         this.velocity = new (0, _vector.Vector)(0, 0);
         this.d = new (0, _vector.Vector)(0, 0);
-        this.graphics = new (0, _pixiJs.Sprite)((0, _pixiJs.Texture).from(imageURL));
+        this.graphics = new (0, _pixiJs.Sprite)((0, _pixiJs.Texture).from(assetKey));
         this.graphics.anchor.x = 0.5;
         this.graphics.anchor.y = 0.5;
         this.graphics.tint = 0xff0000;
         this.addChild(this.graphics);
-        const jetTexture = (0, _pixiJs.Texture).from(new URL(require("355511b42bcae109")).toString());
+        const jetTexture = (0, _pixiJs.Texture).from((0, _consts.AssetKey).Jet);
         this.jetL = new (0, _pixiJs.Sprite)(jetTexture);
         this.jetL.angle = -90;
         this.jetL.anchor.x = 0.5;
@@ -38358,7 +38373,7 @@ class Enemy extends (0, _pixiJs.Container) {
         this.jetR.y = -35;
         this.jetR.scale.set(0.4, 0.5);
         this.graphics.addChild(this.jetR);
-        const bulletTexture = (0, _pixiJs.Texture).from(new URL(require("9f2139e6c83fffd6")).toString());
+        const bulletTexture = (0, _pixiJs.Texture).from((0, _consts.AssetKey).Bullet);
         this.healthBar = new (0, _pixiJs.TilingSprite)(bulletTexture, this.health * 1.5, 16);
         this.healthBar.tileScale = {
             x: 0.2,
@@ -38402,7 +38417,7 @@ class Enemy extends (0, _pixiJs.Container) {
 }
 exports.default = Enemy;
 
-},{"pixi.js":"50mJo","../utils/Vector":"47iGf","355511b42bcae109":"9DXF3","9f2139e6c83fffd6":"lJA5a","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz","../consts":"7htQN"}],"haTrm":[function(require,module,exports) {
+},{"pixi.js":"50mJo","../utils/Vector":"47iGf","../consts":"7htQN","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"haTrm":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _pixiJs = require("pixi.js");
@@ -38416,6 +38431,7 @@ class UI extends (0, _pixiJs.Container) {
         this.engText = new (0, _pixiJs.Text)();
         this.rcsText = new (0, _pixiJs.Text)();
         this.gyroText = new (0, _pixiJs.Text)();
+        this.shieldText = new (0, _pixiJs.Text)();
         this.afterburnerFuel = new (0, _pixiJs.Graphics)();
         this.gameManager = gameManager;
         this.screen = screen;
@@ -38439,6 +38455,11 @@ class UI extends (0, _pixiJs.Container) {
         this.gyroText.style.fontFamily = "Consolas, sans-serif";
         this.gyroText.style.fontWeight = "bold";
         this.addChild(this.gyroText);
+        this.shieldText.text = "[x] SHLD";
+        this.shieldText.style.fill = "#0f0";
+        this.shieldText.style.fontFamily = "Consolas, sans-serif";
+        this.shieldText.style.fontWeight = "bold";
+        this.addChild(this.shieldText);
         this.positionText.text = "";
         this.positionText.style.fill = "#fff";
         this.positionText.style.fontFamily = "Consolas, sans-serif";
@@ -38450,12 +38471,15 @@ class UI extends (0, _pixiJs.Container) {
     redrawGUI() {
         this.velText.x = this.screen.width / 2;
         this.velText.y = this.screen.height - 40;
+        const textHeight = 30;
         this.engText.x = this.screen.width / 2 + this.screen.width / 12;
-        this.engText.y = this.screen.height - 100;
+        this.engText.y = this.screen.height - textHeight * 4 - 10;
         this.rcsText.x = this.screen.width / 2 + this.screen.width / 12;
-        this.rcsText.y = this.screen.height - 70;
+        this.rcsText.y = this.screen.height - textHeight * 3 - 10;
         this.gyroText.x = this.screen.width / 2 + this.screen.width / 12;
-        this.gyroText.y = this.screen.height - 40;
+        this.gyroText.y = this.screen.height - textHeight * 2 - 10;
+        this.shieldText.x = this.screen.width / 2 + this.screen.width / 12;
+        this.shieldText.y = this.screen.height - textHeight - 10;
         this.positionText.x = this.screen.left + 30;
         this.positionText.y = this.screen.top + 30;
         this.afterburnerFuel.x = this.screen.width / 2 - this.screen.width / 12;
@@ -38510,6 +38534,47 @@ exports.default = UI;
 },{"pixi.js":"50mJo","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"3r5Yx":[function(require,module,exports) {
 module.exports = require("55743529fff2d957").getBundleURL("jY4eA") + "spaceship_sprite.9a0260ff.png" + "?" + Date.now();
 
-},{"55743529fff2d957":"b0ReP"}]},["ja4Ww","kuM8f"], "kuM8f", "parcelRequire676f")
+},{"55743529fff2d957":"b0ReP"}],"b0ReP":[function(require,module,exports) {
+"use strict";
+var bundleURL = {};
+function getBundleURLCached(id) {
+    var value = bundleURL[id];
+    if (!value) {
+        value = getBundleURL();
+        bundleURL[id] = value;
+    }
+    return value;
+}
+function getBundleURL() {
+    try {
+        throw new Error();
+    } catch (err) {
+        var matches = ("" + err.stack).match(/(https?|file|ftp|(chrome|moz|safari-web)-extension):\/\/[^)\n]+/g);
+        if (matches) // The first two stack frames will be this function and getBundleURLCached.
+        // Use the 3rd one, which will be a runtime in the original bundle.
+        return getBaseURL(matches[2]);
+    }
+    return "/";
+}
+function getBaseURL(url) {
+    return ("" + url).replace(/^((?:https?|file|ftp|(chrome|moz|safari-web)-extension):\/\/.+)\/[^/]+$/, "$1") + "/";
+}
+// TODO: Replace uses with `new URL(url).origin` when ie11 is no longer supported.
+function getOrigin(url) {
+    var matches = ("" + url).match(/(https?|file|ftp|(chrome|moz|safari-web)-extension):\/\/[^/]+/);
+    if (!matches) throw new Error("Origin not found");
+    return matches[0];
+}
+exports.getBundleURL = getBundleURLCached;
+exports.getBaseURL = getBaseURL;
+exports.getOrigin = getOrigin;
+
+},{}],"lJA5a":[function(require,module,exports) {
+module.exports = require("54d330ac088c08f0").getBundleURL("jY4eA") + "long-ray.d7a4554b.png" + "?" + Date.now();
+
+},{"54d330ac088c08f0":"b0ReP"}],"9DXF3":[function(require,module,exports) {
+module.exports = require("25043ac118bdc5c8").getBundleURL("jY4eA") + "jet.0deac52b.png" + "?" + Date.now();
+
+},{"25043ac118bdc5c8":"b0ReP"}]},["ja4Ww","kuM8f"], "kuM8f", "parcelRequire676f")
 
 //# sourceMappingURL=index.fec10fab.js.map
