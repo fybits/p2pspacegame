@@ -5,7 +5,7 @@
   "source": "src/index.html",
   "scripts": {
     "start": "parcel",
-    "build": "parcel --public-url './' build",
+    "build": "parcel  build",
     "predeploy": "pnpm build",
     "deploy": "gh-pages -d dist",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -15,7 +15,7 @@
   "license": "ISC",
   "devDependencies": {
     "@parcel/transformer-sass": "2.11.0",
-    "parcel": "^2.11.0",
+    "parcel": "2.11.0",
     "process": "^0.11.10",
     "punycode": "^1.4.1",
     "url": "^0.11.0"
