@@ -16,6 +16,7 @@ export default class UI extends Container implements IUpdate {
     engText = new Text();
     rcsText = new Text();
     gyroText = new Text();
+    shieldText = new Text();
 
     afterburnerFuel = new Graphics();
 
@@ -49,6 +50,12 @@ export default class UI extends Container implements IUpdate {
         this.gyroText.style.fontWeight = 'bold';
         this.addChild(this.gyroText);
 
+        this.shieldText.text = "[x] SHLD";
+        this.shieldText.style.fill = '#0f0';
+        this.shieldText.style.fontFamily = 'Consolas, sans-serif'
+        this.shieldText.style.fontWeight = 'bold';
+        this.addChild(this.shieldText);
+
         this.positionText.text = "";
         this.positionText.style.fill = '#fff';
         this.positionText.style.fontFamily = 'Consolas, sans-serif'
@@ -64,12 +71,18 @@ export default class UI extends Container implements IUpdate {
         this.velText.x = this.screen.width / 2;
         this.velText.y = this.screen.height - 40;
 
+        const textHeight = 30;
         this.engText.x = this.screen.width / 2 + this.screen.width / 12;
-        this.engText.y = this.screen.height - 100;
+        this.engText.y = this.screen.height - textHeight * 4 - 10;
+
         this.rcsText.x = this.screen.width / 2 + this.screen.width / 12;
-        this.rcsText.y = this.screen.height - 70;
+        this.rcsText.y = this.screen.height - textHeight * 3 - 10;
+
         this.gyroText.x = this.screen.width / 2 + this.screen.width / 12;
-        this.gyroText.y = this.screen.height - 40;
+        this.gyroText.y = this.screen.height - textHeight * 2 - 10;
+
+        this.shieldText.x = this.screen.width / 2 + this.screen.width / 12;
+        this.shieldText.y = this.screen.height - textHeight - 10;
 
         this.positionText.x = this.screen.left + 30;
         this.positionText.y = this.screen.top + 30;
