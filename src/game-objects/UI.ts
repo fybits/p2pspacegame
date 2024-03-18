@@ -28,37 +28,37 @@ export default class UI extends Container implements IUpdate {
 
         this.velText.anchor.x = 0.5;
         this.velText.style.fill = '#fff';
-        this.velText.style.fontFamily = 'Consolas, sans-serif'
+        this.velText.style.fontFamily = 'Consolas, monospace'
         this.velText.style.fontWeight = 'bold';
         this.addChild(this.velText);
 
         this.engText.text = "[x] ENG";
         this.engText.style.fill = '#0f0';
-        this.engText.style.fontFamily = 'Consolas, sans-serif'
+        this.engText.style.fontFamily = 'Consolas, monospace'
         this.engText.style.fontWeight = 'bold';
         this.addChild(this.engText);
 
         this.rcsText.text = "[x] RCS";
         this.rcsText.style.fill = '#0f0';
-        this.rcsText.style.fontFamily = 'Consolas, sans-serif'
+        this.rcsText.style.fontFamily = 'Consolas, monospace'
         this.rcsText.style.fontWeight = 'bold';
         this.addChild(this.rcsText);
 
         this.gyroText.text = "[x] GYRO";
         this.gyroText.style.fill = '#0f0';
-        this.gyroText.style.fontFamily = 'Consolas, sans-serif'
+        this.gyroText.style.fontFamily = 'Consolas, monospace'
         this.gyroText.style.fontWeight = 'bold';
         this.addChild(this.gyroText);
 
         this.shieldText.text = "[x] SHLD";
         this.shieldText.style.fill = '#0f0';
-        this.shieldText.style.fontFamily = 'Consolas, sans-serif'
+        this.shieldText.style.fontFamily = 'Consolas, monospace'
         this.shieldText.style.fontWeight = 'bold';
         this.addChild(this.shieldText);
 
         this.positionText.text = "";
         this.positionText.style.fill = '#fff';
-        this.positionText.style.fontFamily = 'Consolas, sans-serif'
+        this.positionText.style.fontFamily = 'Consolas, monospace'
         this.positionText.style.fontWeight = 'bold';
         this.addChild(this.positionText);
 
