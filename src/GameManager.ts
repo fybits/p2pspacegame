@@ -173,12 +173,12 @@ export default class GameManager {
             }
             this.checkPlayerBulletsCollision();
 
-            if (Controls.instance.keyboard['tab'] === KeyState.PRESSED) {
+            if (Controls.instance.keyboard.get('tab') === KeyState.PRESSED) {
                 console.log('change follow mode')
                 this.cameraFollowAllMode = !this.cameraFollowAllMode;
             }
 
-            if (Controls.instance.keyboard['f'] === KeyState.PRESSED) {
+            if (Controls.instance.keyboard.get('f') === KeyState.PRESSED) {
                 console.log('change follow mode')
                 this.fullscreen = !this.fullscreen;
                 if (this.fullscreen) {

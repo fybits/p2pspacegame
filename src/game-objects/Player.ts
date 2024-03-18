@@ -75,16 +75,16 @@ export default class Player extends Container implements IUpdate {
 
     update(dt: number) {
         const d: Vector = new Vector(0, 0);
-        if (Controls.instance.keyboard['w'] === KeyState.HELD)
+        if (Controls.instance.keyboard.get('w') === KeyState.HELD)
             d.y += - 1;
-        if (Controls.instance.keyboard['a'] === KeyState.HELD)
+        if (Controls.instance.keyboard.get('a') === KeyState.HELD)
             d.x += -1;
-        if (Controls.instance.keyboard['s'] === KeyState.HELD)
+        if (Controls.instance.keyboard.get('s') === KeyState.HELD)
             d.y += 1;
-        if (Controls.instance.keyboard['d'] === KeyState.HELD)
+        if (Controls.instance.keyboard.get('d') === KeyState.HELD)
             d.x += 1;
 
-        if (Controls.instance.keyboard[' '] === KeyState.HELD && this.afterburner > 0) {
+        if (Controls.instance.keyboard.get(' ') === KeyState.HELD && this.afterburner > 0) {
             if (this.afterburner > 1) {
                 this.speed = AFTERBURNER_SPEED;
             }
@@ -95,15 +95,15 @@ export default class Player extends Container implements IUpdate {
                 this.afterburner += dt / 4;
         }
 
-        if (Controls.instance.keyboard['e'] === KeyState.PRESSED) {
+        if (Controls.instance.keyboard.get('e') === KeyState.PRESSED) {
             this.engOn = !this.engOn;
         }
 
-        if (Controls.instance.keyboard['r'] === KeyState.PRESSED) {
+        if (Controls.instance.keyboard.get('r') === KeyState.PRESSED) {
             this.rcsOn = !this.rcsOn;
         }
 
-        if (Controls.instance.keyboard['g'] === KeyState.PRESSED) {
+        if (Controls.instance.keyboard.get('g') === KeyState.PRESSED) {
             this.gyroOn = !this.gyroOn;
         }
 

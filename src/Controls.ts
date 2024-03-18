@@ -20,14 +20,14 @@ export default class Controls {
 
 
     private keyDown(event: KeyboardEvent) {
-        Controls.instance.keyboard[event.key.toLowerCase()] = KeyState.HELD;
+        Controls.instance.keyboard.set(event.key.toLowerCase(), KeyState.HELD);
         event.preventDefault();
     }
 
     private keyUp(event: KeyboardEvent) {
-        Controls.instance.keyboard[event.key.toLowerCase()] = KeyState.PRESSED;
+        Controls.instance.keyboard.set(event.key.toLowerCase(), KeyState.PRESSED);
         event.preventDefault();
-        requestAnimationFrame(() => Controls.instance.keyboard[event.key.toLowerCase()] = KeyState.OFF)
+        requestAnimationFrame(() => Controls.instance.keyboard.set(event.key.toLowerCase(), KeyState.OFF))
     }
 
     private mouseMove(event) {
