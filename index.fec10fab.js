@@ -37824,13 +37824,13 @@ class Controls {
         throw new Error("Controls is not created!");
     }
     keyDown(event) {
-        Controls.instance.keyboard[event.key.toLowerCase()] = 1;
+        Controls.instance.keyboard.set(event.key.toLowerCase(), 1);
         event.preventDefault();
     }
     keyUp(event) {
-        Controls.instance.keyboard[event.key.toLowerCase()] = 2;
+        Controls.instance.keyboard.set(event.key.toLowerCase(), 2);
         event.preventDefault();
-        requestAnimationFrame(()=>Controls.instance.keyboard[event.key.toLowerCase()] = 0);
+        requestAnimationFrame(()=>Controls.instance.keyboard.set(event.key.toLowerCase(), 0));
     }
     mouseMove(event) {
         Controls.instance.mouse.position = new (0, _vector.Vector)(event.offsetX, event.offsetY);
@@ -38046,22 +38046,28 @@ class GameManager {
     }
     async loadAssets() {
         (0, _pixiJs.Assets).add({
+            alias: "shield",
+            src: "/assets/spritesheet.json"
+        });
+        (0, _pixiJs.Assets).add({
             alias: (0, _consts.AssetKey).Spaceship,
-            src: new URL(require("f87138cfe160a96d")).toString()
+            src: "/assets/spaceship_sprite.png"
         });
         (0, _pixiJs.Assets).add({
             alias: (0, _consts.AssetKey).Bullet,
-            src: new URL(require("c2675bd49ac2f858")).toString()
+            src: "/assets/long-ray.png"
         });
         (0, _pixiJs.Assets).add({
             alias: (0, _consts.AssetKey).Jet,
-            src: new URL(require("d96c1433830a7d56")).toString()
+            src: "/assets/jet.png"
         });
         await (0, _pixiJs.Assets).load([
             (0, _consts.AssetKey).Spaceship,
             (0, _consts.AssetKey).Bullet,
-            (0, _consts.AssetKey).Jet
+            (0, _consts.AssetKey).Jet,
+            "shield"
         ]);
+        console.log((0, _pixiJs.Assets).cache);
     }
     async startGame() {
         // Preload textures
@@ -38081,11 +38087,11 @@ class GameManager {
             this.ui.update(this.app.ticker.deltaMS);
             for (const child of this.camera.children)if ((0, _iupdate.isIUpdate)(child)) child.update(dt);
             this.checkPlayerBulletsCollision();
-            if ((0, _controlsDefault.default).instance.keyboard["tab"] === (0, _controls.KeyState).PRESSED) {
+            if ((0, _controlsDefault.default).instance.keyboard.get("tab") === (0, _controls.KeyState).PRESSED) {
                 console.log("change follow mode");
                 this.cameraFollowAllMode = !this.cameraFollowAllMode;
             }
-            if ((0, _controlsDefault.default).instance.keyboard["f"] === (0, _controls.KeyState).PRESSED) {
+            if ((0, _controlsDefault.default).instance.keyboard.get("f") === (0, _controls.KeyState).PRESSED) {
                 console.log("change follow mode");
                 this.fullscreen = !this.fullscreen;
                 if (this.fullscreen) {
@@ -38144,7 +38150,7 @@ class GameManager {
 }
 exports.default = GameManager;
 
-},{"pixi.js":"50mJo","./utils/Vector":"47iGf","./Controls":"8qatZ","./game-objects/Player":"4bI0o","./game-objects/Bullet":"hRcs9","./game-objects/IUpdate":"jGXbG","./consts":"7htQN","./utils":"6Mk9B","./game-objects/Enemy":"csgB9","./game-objects/UI":"haTrm","f87138cfe160a96d":"3r5Yx","c2675bd49ac2f858":"lJA5a","d96c1433830a7d56":"9DXF3","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"4bI0o":[function(require,module,exports) {
+},{"pixi.js":"50mJo","./utils/Vector":"47iGf","./Controls":"8qatZ","./game-objects/Player":"4bI0o","./game-objects/Bullet":"hRcs9","./game-objects/IUpdate":"jGXbG","./consts":"7htQN","./utils":"6Mk9B","./game-objects/Enemy":"csgB9","./game-objects/UI":"haTrm","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"4bI0o":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _pixiJs = require("pixi.js");
@@ -38218,23 +38224,32 @@ class Player extends (0, _pixiJs.Container) {
         healthBarBackground.tint = 0xff0000;
         this.addChild(healthBarBackground);
         this.addChild(this.healthBar);
+        this.shield = new (0, _pixiJs.AnimatedSprite)((0, _pixiJs.Assets).get("shield").animations["default"]);
+        this.shield.anchor.x = 0.5;
+        this.shield.anchor.y = 0.5;
+        this.shield.scale.x = 1.6;
+        this.shield.scale.y = 1.6;
+        this.shield.alpha = 0.4;
+        this.shield.animationSpeed = 0.1;
+        this.graphics.addChild(this.shield);
+        this.shield.play();
     }
     update(dt) {
         const d = new (0, _vector.Vector)(0, 0);
-        if ((0, _controlsDefault.default).instance.keyboard["w"] === (0, _controls.KeyState).HELD) d.y += -1;
-        if ((0, _controlsDefault.default).instance.keyboard["a"] === (0, _controls.KeyState).HELD) d.x += -1;
-        if ((0, _controlsDefault.default).instance.keyboard["s"] === (0, _controls.KeyState).HELD) d.y += 1;
-        if ((0, _controlsDefault.default).instance.keyboard["d"] === (0, _controls.KeyState).HELD) d.x += 1;
-        if ((0, _controlsDefault.default).instance.keyboard[" "] === (0, _controls.KeyState).HELD && this.afterburner > 0) {
+        if ((0, _controlsDefault.default).instance.keyboard.get("w") === (0, _controls.KeyState).HELD) d.y += -1;
+        if ((0, _controlsDefault.default).instance.keyboard.get("a") === (0, _controls.KeyState).HELD) d.x += -1;
+        if ((0, _controlsDefault.default).instance.keyboard.get("s") === (0, _controls.KeyState).HELD) d.y += 1;
+        if ((0, _controlsDefault.default).instance.keyboard.get("d") === (0, _controls.KeyState).HELD) d.x += 1;
+        if ((0, _controlsDefault.default).instance.keyboard.get(" ") === (0, _controls.KeyState).HELD && this.afterburner > 0) {
             if (this.afterburner > 1) this.speed = (0, _consts.AFTERBURNER_SPEED);
             this.afterburner -= dt / 2;
         } else {
             this.speed = (0, _consts.SPEED);
             if (this.afterburner < (0, _consts.MAX_AFTERBURNER)) this.afterburner += dt / 4;
         }
-        if ((0, _controlsDefault.default).instance.keyboard["e"] === (0, _controls.KeyState).PRESSED) this.engOn = !this.engOn;
-        if ((0, _controlsDefault.default).instance.keyboard["r"] === (0, _controls.KeyState).PRESSED) this.rcsOn = !this.rcsOn;
-        if ((0, _controlsDefault.default).instance.keyboard["g"] === (0, _controls.KeyState).PRESSED) this.gyroOn = !this.gyroOn;
+        if ((0, _controlsDefault.default).instance.keyboard.get("e") === (0, _controls.KeyState).PRESSED) this.engOn = !this.engOn;
+        if ((0, _controlsDefault.default).instance.keyboard.get("r") === (0, _controls.KeyState).PRESSED) this.rcsOn = !this.rcsOn;
+        if ((0, _controlsDefault.default).instance.keyboard.get("g") === (0, _controls.KeyState).PRESSED) this.gyroOn = !this.gyroOn;
         this.jetL.scale.y = -0.4 * d.y * this.speed / (0, _consts.SPEED) + d.x * 0.1 + Math.random() / 20 + 0.1;
         this.jetR.scale.y = -0.4 * d.y * this.speed / (0, _consts.SPEED) - d.x * 0.1 + Math.random() / 20 + 0.1;
         this.jetL.alpha = 0.75 + Math.random() / 4;
@@ -38437,32 +38452,32 @@ class UI extends (0, _pixiJs.Container) {
         this.screen = screen;
         this.velText.anchor.x = 0.5;
         this.velText.style.fill = "#fff";
-        this.velText.style.fontFamily = "Consolas, sans-serif";
+        this.velText.style.fontFamily = "Consolas, monospace";
         this.velText.style.fontWeight = "bold";
         this.addChild(this.velText);
         this.engText.text = "[x] ENG";
         this.engText.style.fill = "#0f0";
-        this.engText.style.fontFamily = "Consolas, sans-serif";
+        this.engText.style.fontFamily = "Consolas, monospace";
         this.engText.style.fontWeight = "bold";
         this.addChild(this.engText);
         this.rcsText.text = "[x] RCS";
         this.rcsText.style.fill = "#0f0";
-        this.rcsText.style.fontFamily = "Consolas, sans-serif";
+        this.rcsText.style.fontFamily = "Consolas, monospace";
         this.rcsText.style.fontWeight = "bold";
         this.addChild(this.rcsText);
         this.gyroText.text = "[x] GYRO";
         this.gyroText.style.fill = "#0f0";
-        this.gyroText.style.fontFamily = "Consolas, sans-serif";
+        this.gyroText.style.fontFamily = "Consolas, monospace";
         this.gyroText.style.fontWeight = "bold";
         this.addChild(this.gyroText);
         this.shieldText.text = "[x] SHLD";
         this.shieldText.style.fill = "#0f0";
-        this.shieldText.style.fontFamily = "Consolas, sans-serif";
+        this.shieldText.style.fontFamily = "Consolas, monospace";
         this.shieldText.style.fontWeight = "bold";
         this.addChild(this.shieldText);
         this.positionText.text = "";
         this.positionText.style.fill = "#fff";
-        this.positionText.style.fontFamily = "Consolas, sans-serif";
+        this.positionText.style.fontFamily = "Consolas, monospace";
         this.positionText.style.fontWeight = "bold";
         this.addChild(this.positionText);
         this.addChild(this.afterburnerFuel);
@@ -38531,50 +38546,6 @@ class UI extends (0, _pixiJs.Container) {
 }
 exports.default = UI;
 
-},{"pixi.js":"50mJo","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"3r5Yx":[function(require,module,exports) {
-module.exports = require("55743529fff2d957").getBundleURL("jY4eA") + "spaceship_sprite.9a0260ff.png" + "?" + Date.now();
-
-},{"55743529fff2d957":"b0ReP"}],"b0ReP":[function(require,module,exports) {
-"use strict";
-var bundleURL = {};
-function getBundleURLCached(id) {
-    var value = bundleURL[id];
-    if (!value) {
-        value = getBundleURL();
-        bundleURL[id] = value;
-    }
-    return value;
-}
-function getBundleURL() {
-    try {
-        throw new Error();
-    } catch (err) {
-        var matches = ("" + err.stack).match(/(https?|file|ftp|(chrome|moz|safari-web)-extension):\/\/[^)\n]+/g);
-        if (matches) // The first two stack frames will be this function and getBundleURLCached.
-        // Use the 3rd one, which will be a runtime in the original bundle.
-        return getBaseURL(matches[2]);
-    }
-    return "/";
-}
-function getBaseURL(url) {
-    return ("" + url).replace(/^((?:https?|file|ftp|(chrome|moz|safari-web)-extension):\/\/.+)\/[^/]+$/, "$1") + "/";
-}
-// TODO: Replace uses with `new URL(url).origin` when ie11 is no longer supported.
-function getOrigin(url) {
-    var matches = ("" + url).match(/(https?|file|ftp|(chrome|moz|safari-web)-extension):\/\/[^/]+/);
-    if (!matches) throw new Error("Origin not found");
-    return matches[0];
-}
-exports.getBundleURL = getBundleURLCached;
-exports.getBaseURL = getBaseURL;
-exports.getOrigin = getOrigin;
-
-},{}],"lJA5a":[function(require,module,exports) {
-module.exports = require("54d330ac088c08f0").getBundleURL("jY4eA") + "long-ray.d7a4554b.png" + "?" + Date.now();
-
-},{"54d330ac088c08f0":"b0ReP"}],"9DXF3":[function(require,module,exports) {
-module.exports = require("25043ac118bdc5c8").getBundleURL("jY4eA") + "jet.0deac52b.png" + "?" + Date.now();
-
-},{"25043ac118bdc5c8":"b0ReP"}]},["ja4Ww","kuM8f"], "kuM8f", "parcelRequire676f")
+},{"pixi.js":"50mJo","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}]},["ja4Ww","kuM8f"], "kuM8f", "parcelRequire676f")
 
 //# sourceMappingURL=index.fec10fab.js.map
