@@ -1,4 +1,4 @@
-import { Container, Sprite, Texture, TilingSprite } from "pixi.js";
+import { AnimatedSprite, Assets, Container, Sprite, Spritesheet, Texture, TilingSprite } from "pixi.js";
 import { Vector } from "../utils/Vector";
 import Controls, { KeyState } from "../Controls";
 import { PeerRoom } from "../PeerRoom";
@@ -18,6 +18,8 @@ export default class Player extends Container implements IUpdate {
     gyroBroken: boolean = false;
     speed: number = SPEED;
     afterburner: number = 100;
+
+    shield: AnimatedSprite;
 
     private jetL: Sprite;
     private jetR: Sprite;
@@ -71,6 +73,16 @@ export default class Player extends Container implements IUpdate {
         healthBarBackground.tint = 0xff0000;
         this.addChild(healthBarBackground);
         this.addChild(this.healthBar);
+
+        this.shield = new AnimatedSprite(Assets.get<Spritesheet>('shield').animations['default']);
+        this.shield.anchor.x = 0.5;
+        this.shield.anchor.y = 0.5;
+        this.shield.scale.x = 1.6;
+        this.shield.scale.y = 1.6;
+        this.shield.alpha = 0.4;
+        this.shield.animationSpeed = 0.1;
+        this.graphics.addChild(this.shield);
+        this.shield.play()
     }
 
     update(dt: number) {

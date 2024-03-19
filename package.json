@@ -4,8 +4,11 @@
   "description": "",
   "source": "src/index.html",
   "scripts": {
-    "start": "parcel",
-    "build": "parcel build --public-url './'",
+    "clean": "rm -rf dist && mkdir dist",
+    "copy-assets": "cp -r ./assets ./dist/assets",
+    "init": "pnpm clean && pnpm copy-assets",
+    "start": "pnpm run init && parcel",
+    "build": "pnpm run init && parcel build --public-url './'",
     "predeploy": "pnpm build",
     "deploy": "gh-pages -d dist",
     "test": "echo \"Error: no test specified\" && exit 1"

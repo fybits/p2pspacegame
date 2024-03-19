@@ -1,4 +1,4 @@
-import { Application, Assets, Graphics, Texture, TilingSprite } from 'pixi.js';
+import { Application, Assets, Graphics } from 'pixi.js';
 import { PeerRoom } from './PeerRoom';
 import { Vector } from './utils/Vector';
 import Controls, { KeyState } from './Controls';
@@ -136,10 +136,12 @@ export default class GameManager {
     }
 
     async loadAssets() {
-        Assets.add(({ alias: AssetKey.Spaceship, src: new URL("/src/imgs/spaceship_sprite.png", import.meta.url).toString() }));
-        Assets.add(({ alias: AssetKey.Bullet, src: new URL("/src/imgs/long-ray.png", import.meta.url).toString() }));
-        Assets.add(({ alias: AssetKey.Jet, src: new URL("/src/imgs/jet.png", import.meta.url).toString() }));
-        await Assets.load([AssetKey.Spaceship, AssetKey.Bullet, AssetKey.Jet]);
+        Assets.add({ alias: 'shield', src: "/assets/spritesheet.json" })
+        Assets.add({ alias: AssetKey.Spaceship, src: "/assets/spaceship_sprite.png" });
+        Assets.add({ alias: AssetKey.Bullet, src: "/assets/long-ray.png" });
+        Assets.add({ alias: AssetKey.Jet, src: "/assets/jet.png" });
+        await Assets.load([AssetKey.Spaceship, AssetKey.Bullet, AssetKey.Jet, 'shield']);
+        console.log(Assets.cache)
     }
 
 
