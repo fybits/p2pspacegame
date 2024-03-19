@@ -37922,8 +37922,6 @@ var _bulletDefault = parcelHelpers.interopDefault(_bullet);
 var _iupdate = require("./game-objects/IUpdate");
 var _consts = require("./consts");
 var _utils = require("./utils");
-var _enemy = require("./game-objects/Enemy");
-var _enemyDefault = parcelHelpers.interopDefault(_enemy);
 var _ui = require("./game-objects/UI");
 var _uiDefault = parcelHelpers.interopDefault(_ui);
 const starsBackground = (g)=>{
@@ -37961,12 +37959,12 @@ class GameManager {
             enemy.y = message.position.y;
             enemy.graphics.angle = message.angle;
             enemy.health = message.health;
-            enemy.d.x = message.d.x;
-            enemy.d.y = message.d.y;
-            enemy.engine = message.engine;
+            enemy.input.x = message.input.x;
+            enemy.input.y = message.input.y;
+            enemy.engOn = message.engine;
             enemy.speed = message.speed;
         } else {
-            const enemy = new (0, _enemyDefault.default)((0, _consts.AssetKey).Spaceship);
+            const enemy = new (0, _playerDefault.default)(this.room);
             this.enemies.set(address, enemy);
             this.camera.addChild(enemy);
         }
@@ -37978,8 +37976,14 @@ class GameManager {
     }
     onBulletCollided(message) {
         const bulletIndex = this.bullets.findIndex((b)=>b.id === message.id && b.owner === message.owner);
-        const deletedBullet = this.bullets.splice(bulletIndex, 1);
-        if (deletedBullet[0]) deletedBullet[0].destroy();
+        if (this.bullets[bulletIndex]) this.bullets[bulletIndex].destroy();
+        this.bullets[bulletIndex] = this.bullets[this.bullets.length - 1];
+        this.bullets.length--;
+        if (this.room.address() === message.target) this.player.takeDamage();
+        else {
+            const target = this.enemies.get(message.target);
+            if (target) target.takeDamage();
+        }
     }
     checkPlayerBulletsCollision() {
         for (const b of this.bullets)if (b.owner !== this.room.address() && (0, _vector.Vector).distance(new (0, _vector.Vector)(this.player.x, this.player.y), new (0, _vector.Vector)(b.x, b.y)) < 40) {
@@ -37987,12 +37991,14 @@ class GameManager {
                 type: "bullet-collided",
                 message: {
                     owner: b.owner,
-                    id: b.id
+                    id: b.id,
+                    target: this.room.address()
                 }
             });
             this.onBulletCollided({
                 owner: b.owner,
-                id: b.id
+                id: b.id,
+                target: this.room.address()
             });
             this.player.health -= 5;
             if (Math.random() < 0.1 - this.player.health / 1000) this.player.gyroBroken = true;
@@ -38046,7 +38052,7 @@ class GameManager {
     }
     async loadAssets() {
         (0, _pixiJs.Assets).add({
-            alias: "shield",
+            alias: (0, _consts.AssetKey).Shield,
             src: "assets/spritesheet.json"
         });
         (0, _pixiJs.Assets).add({
@@ -38065,14 +38071,13 @@ class GameManager {
             (0, _consts.AssetKey).Spaceship,
             (0, _consts.AssetKey).Bullet,
             (0, _consts.AssetKey).Jet,
-            "shield"
+            (0, _consts.AssetKey).Shield
         ]);
-        console.log((0, _pixiJs.Assets).cache);
     }
     async startGame() {
         // Preload textures
         await this.loadAssets();
-        this.player = new (0, _playerDefault.default)(this.room, (0, _consts.AssetKey).Spaceship);
+        this.player = new (0, _playerDefault.default)(this.room, true);
         this.camera.addChild(this.player);
         const g = new (0, _pixiJs.Graphics)();
         starsBackground(g);
@@ -38085,7 +38090,7 @@ class GameManager {
         this.app.stage.addChild(this.ui);
         this.app.ticker.add((dt)=>{
             this.ui.update(this.app.ticker.deltaMS);
-            for (const child of this.camera.children)if ((0, _iupdate.isIUpdate)(child)) child.update(dt);
+            for (const child of this.camera.children)if ((0, _iupdate.isIUpdatable)(child)) child.update(dt);
             this.checkPlayerBulletsCollision();
             if ((0, _controlsDefault.default).instance.keyboard.get("tab") === (0, _controls.KeyState).PRESSED) {
                 console.log("change follow mode");
@@ -38150,7 +38155,7 @@ class GameManager {
 }
 exports.default = GameManager;
 
-},{"pixi.js":"50mJo","./utils/Vector":"47iGf","./Controls":"8qatZ","./game-objects/Player":"4bI0o","./game-objects/Bullet":"hRcs9","./game-objects/IUpdate":"jGXbG","./consts":"7htQN","./utils":"6Mk9B","./game-objects/Enemy":"csgB9","./game-objects/UI":"haTrm","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"4bI0o":[function(require,module,exports) {
+},{"pixi.js":"50mJo","./utils/Vector":"47iGf","./Controls":"8qatZ","./game-objects/Player":"4bI0o","./game-objects/Bullet":"hRcs9","./game-objects/IUpdate":"jGXbG","./consts":"7htQN","./utils":"6Mk9B","./game-objects/UI":"haTrm","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"4bI0o":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _pixiJs = require("pixi.js");
@@ -38158,8 +38163,9 @@ var _vector = require("../utils/Vector");
 var _controls = require("../Controls");
 var _controlsDefault = parcelHelpers.interopDefault(_controls);
 var _consts = require("../consts");
+const SHIELD_ALPHA = 0.3;
 class Player extends (0, _pixiJs.Container) {
-    constructor(room, assetKey){
+    constructor(room, controlled = false){
         super();
         this.health = 100;
         this.angularVelocity = 0;
@@ -38169,16 +38175,22 @@ class Player extends (0, _pixiJs.Container) {
         this.rcsBroken = false;
         this.gyroOn = true;
         this.gyroBroken = false;
+        this.shieldOn = true;
         this.speed = (0, _consts.SPEED);
         this.afterburner = 100;
+        this.controlled = false;
+        this.damageTaken = false;
         this._room = room;
         this.velocity = new (0, _vector.Vector)(0, 0);
-        const texture = (0, _pixiJs.Texture).from(assetKey);
+        this.input = new (0, _vector.Vector)(0, 0);
+        this.controlled = controlled;
+        const texture = (0, _pixiJs.Texture).from((0, _consts.AssetKey).Spaceship);
         texture.rotate = 2;
         const playerSprite = new (0, _pixiJs.Sprite)(texture);
         this.graphics = playerSprite;
         this.graphics.anchor.x = 0.5;
         this.graphics.anchor.y = 0.5;
+        if (!controlled) this.graphics.tint = 0xff0000;
         this.addChild(this.graphics);
         const jetTexture = (0, _pixiJs.Texture).from((0, _consts.AssetKey).Jet);
         this.jetL = new (0, _pixiJs.Sprite)(jetTexture);
@@ -38229,32 +38241,44 @@ class Player extends (0, _pixiJs.Container) {
         this.shield.anchor.y = 0.5;
         this.shield.scale.x = 1.6;
         this.shield.scale.y = 1.6;
-        this.shield.alpha = 0.4;
+        this.shield.alpha = SHIELD_ALPHA;
         this.shield.animationSpeed = 0.1;
         this.graphics.addChild(this.shield);
         this.shield.play();
     }
+    takeDamage() {
+        this.damageTaken = true;
+        this.shield.alpha = 0.6;
+    }
     update(dt) {
-        const d = new (0, _vector.Vector)(0, 0);
-        if ((0, _controlsDefault.default).instance.keyboard.get("w") === (0, _controls.KeyState).HELD) d.y += -1;
-        if ((0, _controlsDefault.default).instance.keyboard.get("a") === (0, _controls.KeyState).HELD) d.x += -1;
-        if ((0, _controlsDefault.default).instance.keyboard.get("s") === (0, _controls.KeyState).HELD) d.y += 1;
-        if ((0, _controlsDefault.default).instance.keyboard.get("d") === (0, _controls.KeyState).HELD) d.x += 1;
-        if ((0, _controlsDefault.default).instance.keyboard.get(" ") === (0, _controls.KeyState).HELD && this.afterburner > 0) {
-            if (this.afterburner > 1) this.speed = (0, _consts.AFTERBURNER_SPEED);
-            this.afterburner -= dt / 2;
-        } else {
-            this.speed = (0, _consts.SPEED);
-            if (this.afterburner < (0, _consts.MAX_AFTERBURNER)) this.afterburner += dt / 4;
+        if (this.controlled) {
+            this.input = new (0, _vector.Vector)(0, 0);
+            if ((0, _controlsDefault.default).instance.keyboard.get("w") === (0, _controls.KeyState).HELD) this.input.y += -1;
+            if ((0, _controlsDefault.default).instance.keyboard.get("a") === (0, _controls.KeyState).HELD) this.input.x += -1;
+            if ((0, _controlsDefault.default).instance.keyboard.get("s") === (0, _controls.KeyState).HELD) this.input.y += 1;
+            if ((0, _controlsDefault.default).instance.keyboard.get("d") === (0, _controls.KeyState).HELD) this.input.x += 1;
+            if ((0, _controlsDefault.default).instance.keyboard.get(" ") === (0, _controls.KeyState).HELD && this.afterburner > 0) {
+                if (this.afterburner > 1) this.speed = (0, _consts.AFTERBURNER_SPEED);
+                this.afterburner -= dt / 2;
+            } else {
+                this.speed = (0, _consts.SPEED);
+                if (this.afterburner < (0, _consts.MAX_AFTERBURNER)) this.afterburner += dt / 4;
+            }
+            if ((0, _controlsDefault.default).instance.keyboard.get("e") === (0, _controls.KeyState).PRESSED) this.engOn = !this.engOn;
+            if ((0, _controlsDefault.default).instance.keyboard.get("r") === (0, _controls.KeyState).PRESSED) this.rcsOn = !this.rcsOn;
+            if ((0, _controlsDefault.default).instance.keyboard.get("g") === (0, _controls.KeyState).PRESSED) this.gyroOn = !this.gyroOn;
+            if ((0, _controlsDefault.default).instance.keyboard.get("h") === (0, _controls.KeyState).PRESSED) {
+                this.shieldOn = !this.shieldOn;
+                console.log(this.shieldOn);
+            }
         }
-        if ((0, _controlsDefault.default).instance.keyboard.get("e") === (0, _controls.KeyState).PRESSED) this.engOn = !this.engOn;
-        if ((0, _controlsDefault.default).instance.keyboard.get("r") === (0, _controls.KeyState).PRESSED) this.rcsOn = !this.rcsOn;
-        if ((0, _controlsDefault.default).instance.keyboard.get("g") === (0, _controls.KeyState).PRESSED) this.gyroOn = !this.gyroOn;
-        this.jetL.scale.y = -0.4 * d.y * this.speed / (0, _consts.SPEED) + d.x * 0.1 + Math.random() / 20 + 0.1;
-        this.jetR.scale.y = -0.4 * d.y * this.speed / (0, _consts.SPEED) - d.x * 0.1 + Math.random() / 20 + 0.1;
+        if (this.damageTaken && this.shield.alpha > SHIELD_ALPHA) this.shield.alpha -= dt / 40;
+        else this.damageTaken = false;
+        this.jetL.scale.y = -0.4 * this.input.y * this.speed / (0, _consts.SPEED) + this.input.x * 0.1 + Math.random() / 20 + 0.1;
+        this.jetR.scale.y = -0.4 * this.input.y * this.speed / (0, _consts.SPEED) - this.input.x * 0.1 + Math.random() / 20 + 0.1;
         this.jetL.alpha = 0.75 + Math.random() / 4;
         this.jetR.alpha = 0.75 + Math.random() / 4;
-        if (d.x && this.engOn && !this.engBroken) this.angularVelocity = this.angularVelocity - this.angularVelocity * 0.01 * dt + d.x * dt * 0.1;
+        if (this.input.x && this.engOn && !this.engBroken) this.angularVelocity = this.angularVelocity - this.angularVelocity * 0.01 * dt + this.input.x * dt * 0.1;
         else if (this.gyroOn && !this.gyroBroken) this.angularVelocity -= this.angularVelocity * 0.1 * dt;
         if (!this.engOn || this.engBroken) {
             this.jetL.alpha = 0;
@@ -38262,11 +38286,11 @@ class Player extends (0, _pixiJs.Container) {
         }
         this.graphics.angle = (this.graphics.angle + this.angularVelocity * dt) % 360;
         this.healthBar.width = this.health * 1.5;
-        if (d.y && this.engOn && !this.engBroken) this.velocity = new (0, _vector.Vector)(this.velocity.x - this.velocity.x * (0, _consts.SPEED_DAMPENING) * dt + this.speed * d.y * dt * Math.cos(this.graphics.rotation), this.velocity.y - this.velocity.y * (0, _consts.SPEED_DAMPENING) * dt + this.speed * d.y * dt * Math.sin(this.graphics.rotation));
+        if (this.input.y && this.engOn && !this.engBroken) this.velocity = new (0, _vector.Vector)(this.velocity.x - this.velocity.x * (0, _consts.SPEED_DAMPENING) * dt + this.speed * this.input.y * dt * Math.cos(this.graphics.rotation), this.velocity.y - this.velocity.y * (0, _consts.SPEED_DAMPENING) * dt + this.speed * this.input.y * dt * Math.sin(this.graphics.rotation));
         else if (this.rcsOn && !this.rcsBroken && this.engOn && !this.engBroken) this.velocity = new (0, _vector.Vector)(this.velocity.x - this.velocity.x * (0, _consts.RCS_DAMPENING) * dt, this.velocity.y - this.velocity.y * (0, _consts.RCS_DAMPENING) * dt);
         this.x = this.x + this.velocity.x * dt / 1000;
         this.y = this.y + this.velocity.y * dt / 1000;
-        this._room.send({
+        if (this.controlled) this._room.send({
             type: "player-state",
             message: {
                 position: {
@@ -38275,9 +38299,9 @@ class Player extends (0, _pixiJs.Container) {
                 },
                 angle: this.graphics.angle,
                 health: this.health,
-                d: {
-                    x: d.x,
-                    y: d.y
+                input: {
+                    x: this.input.x,
+                    y: this.input.y
                 },
                 engine: !this.engBroken && this.engOn,
                 speed: this.speed
@@ -38312,6 +38336,7 @@ var AssetKey;
     AssetKey["Bullet"] = "bullet";
     AssetKey["Spaceship"] = "spaceship";
     AssetKey["Jet"] = "jet";
+    AssetKey["Shield"] = "shield";
 })(AssetKey || (AssetKey = {}));
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"hRcs9":[function(require,module,exports) {
@@ -38341,8 +38366,8 @@ exports.default = Bullet;
 },{"pixi.js":"50mJo","../consts":"7htQN","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"jGXbG":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "isIUpdate", ()=>isIUpdate);
-const isIUpdate = (object)=>{
+parcelHelpers.export(exports, "isIUpdatable", ()=>isIUpdatable);
+const isIUpdatable = (object)=>{
     return object.update !== undefined;
 };
 
@@ -38355,84 +38380,7 @@ const sortedClamp = (value, a, b)=>{
     return Math.min(Math.max(value, a), b);
 };
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"csgB9":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-var _pixiJs = require("pixi.js");
-var _vector = require("../utils/Vector");
-var _consts = require("../consts");
-class Enemy extends (0, _pixiJs.Container) {
-    constructor(assetKey){
-        super();
-        this.velocity = new (0, _vector.Vector)(0, 0);
-        this.d = new (0, _vector.Vector)(0, 0);
-        this.graphics = new (0, _pixiJs.Sprite)((0, _pixiJs.Texture).from(assetKey));
-        this.graphics.anchor.x = 0.5;
-        this.graphics.anchor.y = 0.5;
-        this.graphics.tint = 0xff0000;
-        this.addChild(this.graphics);
-        const jetTexture = (0, _pixiJs.Texture).from((0, _consts.AssetKey).Jet);
-        this.jetL = new (0, _pixiJs.Sprite)(jetTexture);
-        this.jetL.angle = -90;
-        this.jetL.anchor.x = 0.5;
-        this.jetL.anchor.y = 0;
-        this.jetL.x = 50;
-        this.jetL.y = 35;
-        this.jetL.scale.set(0.4, 0.5);
-        this.graphics.addChild(this.jetL);
-        this.jetR = new (0, _pixiJs.Sprite)(jetTexture);
-        this.jetR.angle = -90;
-        this.jetR.anchor.x = 0.5;
-        this.jetR.anchor.y = 0;
-        this.jetR.x = 50;
-        this.jetR.y = -35;
-        this.jetR.scale.set(0.4, 0.5);
-        this.graphics.addChild(this.jetR);
-        const bulletTexture = (0, _pixiJs.Texture).from((0, _consts.AssetKey).Bullet);
-        this.healthBar = new (0, _pixiJs.TilingSprite)(bulletTexture, this.health * 1.5, 16);
-        this.healthBar.tileScale = {
-            x: 0.2,
-            y: 0.1
-        };
-        this.healthBar.position = {
-            x: -75,
-            y: -90
-        };
-        this.healthBar.anchor.x = 0;
-        this.healthBar.anchor.y = 0.5;
-        this.healthBar.tint = 0x00ff00;
-        const healthBarBackground = new (0, _pixiJs.TilingSprite)(bulletTexture, 150, 16);
-        healthBarBackground.tileScale = {
-            x: 0.2,
-            y: 0.1
-        };
-        healthBarBackground.position = {
-            x: -75,
-            y: -94
-        };
-        healthBarBackground.anchor.x = 0;
-        healthBarBackground.anchor.y = 0.5;
-        healthBarBackground.tint = 0xff0000;
-        this.addChild(healthBarBackground);
-        this.addChild(this.healthBar);
-    }
-    update(dt) {
-        this.jetL.scale.y = -0.4 * this.d.y * this.speed / (0, _consts.SPEED) + this.d.x * 0.1 + Math.random() / 20 + 0.1;
-        this.jetR.scale.y = -0.4 * this.d.y * this.speed / (0, _consts.SPEED) - this.d.x * 0.1 + Math.random() / 20 + 0.1;
-        this.jetL.alpha = 0.75 + Math.random() / 4;
-        this.jetR.alpha = 0.75 + Math.random() / 4;
-        if (!this.engine) {
-            this.jetL.alpha = 0;
-            this.jetR.alpha = 0;
-        }
-        this.x = this.x + this.velocity.x * dt / 1000;
-        this.y = this.y + this.velocity.y * dt / 1000;
-        this.healthBar.width = this.health * 1.5;
-    }
-}
-exports.default = Enemy;
-
-},{"pixi.js":"50mJo","../utils/Vector":"47iGf","../consts":"7htQN","@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"haTrm":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"b3YDz"}],"haTrm":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _pixiJs = require("pixi.js");
@@ -38509,6 +38457,13 @@ class UI extends (0, _pixiJs.Container) {
         this.afterburnerFuel.endFill();
         this.timer += dtMS;
         const animStep = Math.round(this.timer / 500) % 2;
+        if (this.gameManager.player.shieldOn) {
+            this.shieldText.text = "[x] SHLD";
+            this.shieldText.style.fill = "#0f0";
+        } else {
+            this.shieldText.text = "[ ] SHLD";
+            this.shieldText.style.fill = "#f00";
+        }
         if (this.gameManager.player.engBroken) {
             if (animStep) this.engText.text = "[!] ENG";
             else this.engText.text = "[ ] ENG";
