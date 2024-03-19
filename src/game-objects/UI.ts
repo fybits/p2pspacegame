@@ -103,6 +103,13 @@ export default class UI extends Container implements IUpdatable {
         this.timer += dtMS;
         const animStep = Math.round(this.timer / 500) % 2;
 
+        if (this.gameManager.player.shieldOn) {
+            this.shieldText.text = "[x] SHLD";
+            this.shieldText.style.fill = '#0f0';
+        } else {
+            this.shieldText.text = "[ ] SHLD";
+            this.shieldText.style.fill = '#f00';
+        }
         if (this.gameManager.player.engBroken) {
             if (animStep) {
                 this.engText.text = "[!] ENG";

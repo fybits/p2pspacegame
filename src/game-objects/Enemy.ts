@@ -62,6 +62,10 @@ export default class Enemy extends Container implements IUpdatable {
         this.addChild(this.healthBar);
     }
 
+    takeDamage() {
+
+    }
+
     update(dt: number) {
 
         this.jetL.scale.y = -0.4 * this.d.y * this.speed / SPEED + this.d.x * 0.1 + Math.random() / 20 + 0.1;

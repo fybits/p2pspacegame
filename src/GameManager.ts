@@ -1,4 +1,4 @@
-import { Application, Assets, Graphics } from 'pixi.js';
+import { Application, Assets, Graphics, TilingSprite } from 'pixi.js';
 import { PeerRoom } from './PeerRoom';
 import { Vector } from './utils/Vector';
 import Controls, { KeyState } from './Controls';
@@ -48,7 +48,7 @@ export default class GameManager {
         this.bullets = [];
     }
 
-    onPlayerState(address: string, message) {
+    onPlayerState(address: string, message: { position: Vector; angle: number; health: number; d: Vector; engine: boolean; speed: number; }) {
         if (this.enemies.has(address)) {
             const enemy = this.enemies.get(address) as Enemy;
             enemy.x = message.position.x;
@@ -66,7 +66,7 @@ export default class GameManager {
         }
     }
 
-    onBulletShot(address: string, message) {
+    onBulletShot(address: string, message: { id: number; position: Vector; angle: number; velocity: Vector; }) {
         const bullet = new Bullet(
             message.position,
             message.velocity,
@@ -78,18 +78,25 @@ export default class GameManager {
         this.camera.addChild(bullet);
     }
 
-    onBulletCollided(message) {
+    onBulletCollided(message: { owner: string; id: number; target: string; }) {
         const bulletIndex = this.bullets.findIndex((b) => b.id === message.id && b.owner === message.owner);
-        const deletedBullet = this.bullets.splice(bulletIndex, 1);
-        if (deletedBullet[0]) deletedBullet[0].destroy();
+        if (this.bullets[bulletIndex]) this.bullets[bulletIndex].destroy();
+        this.bullets[bulletIndex] = this.bullets[this.bullets.length - 1];
+        this.bullets.length--;
+        if (this.room.address() === message.target) {
+            this.player.takeDamage();
+        } else {
+            const target = this.enemies.get(message.target);
+            if (target) target.takeDamage();
+        }
     }
 
     private checkPlayerBulletsCollision() {
         for (const b of this.bullets) {
             if (b.owner !== this.room.address()
                 && Vector.distance(new Vector(this.player.x, this.player.y), new Vector(b.x, b.y)) < 40) {
-                this.room.send({ type: 'bullet-collided', message: { owner: b.owner, id: b.id } })
-                this.onBulletCollided({ owner: b.owner, id: b.id });
+                this.room.send({ type: 'bullet-collided', message: { owner: b.owner, id: b.id, target: this.room.address() } })
+                this.onBulletCollided({ owner: b.owner, id: b.id, target: this.room.address() });
                 this.player.health -= 5;
                 if (Math.random() < 0.1 - (this.player.health / 1000)) {
                     this.player.gyroBroken = true;

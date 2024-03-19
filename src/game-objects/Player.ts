@@ -5,6 +5,7 @@ import { PeerRoom } from "../PeerRoom";
 import IUpdatable from "./IUpdate";
 import { SPEED, AFTERBURNER_SPEED, MAX_AFTERBURNER, SPEED_DAMPENING, RCS_DAMPENING, AssetKey } from "../consts";
 
+const SHIELD_ALPHA = 0.3;
 export default class Player extends Container implements IUpdatable {
     health = 100;
     velocity: Vector;
@@ -16,15 +17,17 @@ export default class Player extends Container implements IUpdatable {
     rcsBroken: boolean = false;
     gyroOn: boolean = true;
     gyroBroken: boolean = false;
+    shieldOn: boolean = true;
     speed: number = SPEED;
     afterburner: number = 100;
 
-    shield: AnimatedSprite;
-
+    private shield: AnimatedSprite;
     private jetL: Sprite;
     private jetR: Sprite;
     private _room: PeerRoom;
     private healthBar: TilingSprite;
+
+    private damageTaken = false;
 
     constructor(room: PeerRoom, assetKey: AssetKey) {
         super();
@@ -79,10 +82,15 @@ export default class Player extends Container implements IUpdatable {
         this.shield.anchor.y = 0.5;
         this.shield.scale.x = 1.6;
         this.shield.scale.y = 1.6;
-        this.shield.alpha = 0.4;
+        this.shield.alpha = SHIELD_ALPHA;
         this.shield.animationSpeed = 0.1;
         this.graphics.addChild(this.shield);
         this.shield.play()
+    }
+
+    takeDamage() {
+        this.damageTaken = true;
+        this.shield.alpha = 0.6;
     }
 
     update(dt: number) {
@@ -95,6 +103,12 @@ export default class Player extends Container implements IUpdatable {
             d.y += 1;
         if (Controls.instance.keyboard.get('d') === KeyState.HELD)
             d.x += 1;
+
+        if (this.damageTaken && this.shield.alpha > SHIELD_ALPHA) {
+            this.shield.alpha -= dt / 40;
+        } else {
+            this.damageTaken = false;
+        }
 
         if (Controls.instance.keyboard.get(' ') === KeyState.HELD && this.afterburner > 0) {
             if (this.afterburner > 1) {
@@ -117,6 +131,11 @@ export default class Player extends Container implements IUpdatable {
 
         if (Controls.instance.keyboard.get('g') === KeyState.PRESSED) {
             this.gyroOn = !this.gyroOn;
+        }
+
+        if (Controls.instance.keyboard.get('h') === KeyState.PRESSED) {
+            this.shieldOn = !this.shieldOn;
+            console.log(this.shieldOn)
         }
 
         this.jetL.scale.y = -0.4 * d.y * this.speed / SPEED + d.x * 0.1 + Math.random() / 20 + 0.1;
