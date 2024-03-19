@@ -1,11 +1,10 @@
-import { Application, Assets, Container, Graphics, Rectangle, Sprite, Text, Texture } from "pixi.js";
-import { Vector } from "../utils/Vector";
-import IUpdate from "./IUpdate";
+import { Container, Graphics, Rectangle, Text } from "pixi.js";
+import IUpdatable from "./IUpdate";
 import GameManager from "../GameManager";
 
 const speed = 150;
 
-export default class UI extends Container implements IUpdate {
+export default class UI extends Container implements IUpdatable {
     private gameManager: GameManager;
     private screen: Rectangle;
     private timer: number = 0;

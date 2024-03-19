@@ -12,4 +12,5 @@ export enum AssetKey {
     Bullet = 'bullet',
     Spaceship = 'spaceship',
     Jet = 'jet',
+    Shield = 'shield',
 }

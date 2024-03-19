@@ -2,10 +2,10 @@ import { AnimatedSprite, Assets, Container, Sprite, Spritesheet, Texture, Tiling
 import { Vector } from "../utils/Vector";
 import Controls, { KeyState } from "../Controls";
 import { PeerRoom } from "../PeerRoom";
-import IUpdate from "./IUpdate";
+import IUpdatable from "./IUpdate";
 import { SPEED, AFTERBURNER_SPEED, MAX_AFTERBURNER, SPEED_DAMPENING, RCS_DAMPENING, AssetKey } from "../consts";
 
-export default class Player extends Container implements IUpdate {
+export default class Player extends Container implements IUpdatable {
     health = 100;
     velocity: Vector;
     angularVelocity: number = 0;

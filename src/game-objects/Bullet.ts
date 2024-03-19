@@ -1,11 +1,11 @@
-import { Assets, Sprite, Texture } from "pixi.js";
+import { Sprite, Texture } from "pixi.js";
 import { Vector } from "../utils/Vector";
-import IUpdate from "./IUpdate";
+import IUpdatable from "./IUpdate";
 import { AssetKey } from "../consts";
 
 const speed = 150;
 
-export default class Bullet extends Sprite implements IUpdate {
+export default class Bullet extends Sprite implements IUpdatable {
     velocity: Vector;
     owner: string;
     id: number;

@@ -1,14 +1,10 @@
 
-import { Application, Buffer, Graphics, ParticleRenderer } from 'pixi.js';
+import { Application } from 'pixi.js';
 import { PeerRoom } from './PeerRoom';
-import Enemy from './game-objects/Enemy';
 import Controls from './Controls';
 import Camera from './game-objects/Camera';
-import IUpdate from './game-objects/IUpdate';
 import GameManager from './GameManager';
 import { WINDOW_HEIGHT, WINDOW_WIDTH } from './consts';
-import Player from './game-objects/Player';
-import Bullet from './game-objects/Bullet';
 
 const lobbyControlsContainer = document.querySelector<HTMLDivElement>('div.lobby-controls')!;
 

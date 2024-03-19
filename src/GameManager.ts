@@ -5,7 +5,7 @@ import Controls, { KeyState } from './Controls';
 import Player from './game-objects/Player';
 import Bullet from './game-objects/Bullet';
 import Camera from './game-objects/Camera';
-import { isIUpdate } from './game-objects/IUpdate';
+import { isIUpdatable } from './game-objects/IUpdate';
 import { AssetKey, SPEED_ZOOM_FACTOR, WINDOW_HEIGHT, WINDOW_WIDTH } from './consts';
 import { sortedClamp } from './utils';
 import Enemy from './game-objects/Enemy';
@@ -136,12 +136,11 @@ export default class GameManager {
     }
 
     async loadAssets() {
-        Assets.add({ alias: 'shield', src: "assets/spritesheet.json" })
+        Assets.add({ alias: AssetKey.Shield, src: "assets/spritesheet.json" })
         Assets.add({ alias: AssetKey.Spaceship, src: "assets/spaceship_sprite.png" });
         Assets.add({ alias: AssetKey.Bullet, src: "assets/long-ray.png" });
         Assets.add({ alias: AssetKey.Jet, src: "assets/jet.png" });
-        await Assets.load([AssetKey.Spaceship, AssetKey.Bullet, AssetKey.Jet, 'shield']);
-        console.log(Assets.cache)
+        await Assets.load([AssetKey.Spaceship, AssetKey.Bullet, AssetKey.Jet, AssetKey.Shield]);
     }
 
 
@@ -169,7 +168,7 @@ export default class GameManager {
             this.ui.update(this.app.ticker.deltaMS);
 
             for (const child of this.camera.children) {
-                if (isIUpdate(child)) {
+                if (isIUpdatable(child)) {
                     child.update(dt);
                 }
             }

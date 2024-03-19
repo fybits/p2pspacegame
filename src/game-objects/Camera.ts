@@ -1,10 +1,9 @@
 import { Container, Texture } from "pixi.js";
 import { Vector } from "../utils/Vector";
-import Controls from "../Controls";
-import IUpdate from "./IUpdate";
+import IUpdatable from "./IUpdate";
 
 
-export default class Camera extends Container implements IUpdate {
+export default class Camera extends Container implements IUpdatable {
     private zoom: number;
     public desiredZoom: number;
     public desiredPosition: Vector;

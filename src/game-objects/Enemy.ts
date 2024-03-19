@@ -1,10 +1,9 @@
 import { Container, Sprite, Texture, TilingSprite } from "pixi.js";
 import { Vector } from "../utils/Vector";
-import Controls from "../Controls";
-import IUpdate from "./IUpdate";
+import IUpdatable from "./IUpdate";
 import { AssetKey, SPEED } from "../consts";
 
-export default class Enemy extends Container implements IUpdate {
+export default class Enemy extends Container implements IUpdatable {
     velocity: Vector;
     health: number;
     graphics: Sprite;

@@ -1,7 +1,7 @@
-export default interface IUpdate {
+export default interface IUpdatable {
     update(dt: number): void;
 }
 
-export const isIUpdate = (object): object is IUpdate => {
-    return (object as IUpdate).update !== undefined;
+export const isIUpdatable = (object: any): object is IUpdatable => {
+    return (object as IUpdatable).update !== undefined;
 }
