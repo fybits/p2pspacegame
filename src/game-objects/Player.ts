@@ -96,7 +96,8 @@ export default class Player extends Container implements IUpdatable {
 
     takeDamage() {
         this.damageTaken = true;
-        this.shield.alpha = 0.5;
+        if (this.shieldOn)
+            this.shield.alpha = 0.5;
     }
 
     update(dt: number) {
@@ -140,10 +141,16 @@ export default class Player extends Container implements IUpdatable {
             }
         }
 
-        if (this.damageTaken && this.shield.alpha > SHIELD_ALPHA) {
-            this.shield.alpha -= dt / 40;
+        if (this.shieldOn) {
+            if (this.shield.alpha < SHIELD_ALPHA)
+                this.shield.alpha = SHIELD_ALPHA;
+            if (this.damageTaken && this.shield.alpha > SHIELD_ALPHA) {
+                this.shield.alpha -= dt / 40;
+            } else {
+                this.damageTaken = false;
+            }
         } else {
-            this.damageTaken = false;
+            this.shield.alpha = 0;
         }
 
 
@@ -155,7 +162,7 @@ export default class Player extends Container implements IUpdatable {
         if (this.input.x && this.engOn && !this.engBroken) {
             this.angularVelocity = this.angularVelocity - this.angularVelocity * 0.01 * dt + this.input.x * dt * 0.1;
         } else if (this.gyroOn && !this.gyroBroken) {
-            this.angularVelocity -= this.angularVelocity * 0.1 * dt;
+            this.angularVelocity -= this.angularVelocity * 0.2 * dt;
         }
 
         if (!this.engOn || this.engBroken) {
