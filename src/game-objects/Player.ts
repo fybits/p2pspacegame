@@ -5,7 +5,7 @@ import { PeerRoom } from "../PeerRoom";
 import IUpdatable from "./IUpdate";
 import { SPEED, AFTERBURNER_SPEED, MAX_AFTERBURNER, SPEED_DAMPENING, RCS_DAMPENING, AssetKey } from "../consts";
 
-const SHIELD_ALPHA = 0.3;
+const SHIELD_ALPHA = 0.1;
 export default class Player extends Container implements IUpdatable {
     health = 100;
     velocity: Vector;
@@ -84,9 +84,9 @@ export default class Player extends Container implements IUpdatable {
         this.addChild(this.healthBar);
 
         this.shield = new AnimatedSprite(Assets.get<Spritesheet>('shield').animations['default']);
-        this.shield.anchor.x = 0.5;
+        this.shield.anchor.x = 0.48;
         this.shield.anchor.y = 0.5;
-        this.shield.scale.x = 1.6;
+        this.shield.scale.x = 2;
         this.shield.scale.y = 1.6;
         this.shield.alpha = SHIELD_ALPHA;
         this.shield.animationSpeed = 0.1;
@@ -96,7 +96,7 @@ export default class Player extends Container implements IUpdatable {
 
     takeDamage() {
         this.damageTaken = true;
-        this.shield.alpha = 0.6;
+        this.shield.alpha = 0.5;
     }
 
     update(dt: number) {
