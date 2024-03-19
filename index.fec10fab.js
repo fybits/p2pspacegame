@@ -38163,7 +38163,7 @@ var _vector = require("../utils/Vector");
 var _controls = require("../Controls");
 var _controlsDefault = parcelHelpers.interopDefault(_controls);
 var _consts = require("../consts");
-const SHIELD_ALPHA = 0.3;
+const SHIELD_ALPHA = 0.15;
 class Player extends (0, _pixiJs.Container) {
     constructor(room, controlled = false){
         super();
@@ -38237,9 +38237,9 @@ class Player extends (0, _pixiJs.Container) {
         this.addChild(healthBarBackground);
         this.addChild(this.healthBar);
         this.shield = new (0, _pixiJs.AnimatedSprite)((0, _pixiJs.Assets).get("shield").animations["default"]);
-        this.shield.anchor.x = 0.5;
+        this.shield.anchor.x = 0.48;
         this.shield.anchor.y = 0.5;
-        this.shield.scale.x = 1.6;
+        this.shield.scale.x = 2;
         this.shield.scale.y = 1.6;
         this.shield.alpha = SHIELD_ALPHA;
         this.shield.animationSpeed = 0.1;
@@ -38248,7 +38248,7 @@ class Player extends (0, _pixiJs.Container) {
     }
     takeDamage() {
         this.damageTaken = true;
-        this.shield.alpha = 0.6;
+        this.shield.alpha = 0.5;
     }
     update(dt) {
         if (this.controlled) {
