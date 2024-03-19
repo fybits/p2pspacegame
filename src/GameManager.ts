@@ -136,10 +136,10 @@ export default class GameManager {
     }
 
     async loadAssets() {
-        Assets.add({ alias: 'shield', src: "/assets/spritesheet.json" })
-        Assets.add({ alias: AssetKey.Spaceship, src: "/assets/spaceship_sprite.png" });
-        Assets.add({ alias: AssetKey.Bullet, src: "/assets/long-ray.png" });
-        Assets.add({ alias: AssetKey.Jet, src: "/assets/jet.png" });
+        Assets.add({ alias: 'shield', src: "assets/spritesheet.json" })
+        Assets.add({ alias: AssetKey.Spaceship, src: "assets/spaceship_sprite.png" });
+        Assets.add({ alias: AssetKey.Bullet, src: "assets/long-ray.png" });
+        Assets.add({ alias: AssetKey.Jet, src: "assets/jet.png" });
         await Assets.load([AssetKey.Spaceship, AssetKey.Bullet, AssetKey.Jet, 'shield']);
         console.log(Assets.cache)
     }
