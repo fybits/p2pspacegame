@@ -20,6 +20,8 @@ export default class Player extends Container implements IUpdatable {
     shieldOn: boolean = true;
     speed: number = SPEED;
     afterburner: number = 100;
+    controlled = false;
+    input: Vector;
 
     private shield: AnimatedSprite;
     private jetL: Sprite;
@@ -29,17 +31,21 @@ export default class Player extends Container implements IUpdatable {
 
     private damageTaken = false;
 
-    constructor(room: PeerRoom, assetKey: AssetKey) {
+    constructor(room: PeerRoom, controlled: boolean = false) {
         super();
         this._room = room;
         this.velocity = new Vector(0, 0);
+        this.input = new Vector(0, 0);
+        this.controlled = controlled;
 
-        const texture = Texture.from(assetKey);
+        const texture = Texture.from(AssetKey.Spaceship);
         texture.rotate = 2;
         const playerSprite = new Sprite(texture);
         this.graphics = playerSprite;
         this.graphics.anchor.x = 0.5;
         this.graphics.anchor.y = 0.5;
+        if (!controlled)
+            this.graphics.tint = 0xff0000;
         this.addChild(this.graphics)
 
         const jetTexture = Texture.from(AssetKey.Jet);
@@ -94,15 +100,45 @@ export default class Player extends Container implements IUpdatable {
     }
 
     update(dt: number) {
-        const d: Vector = new Vector(0, 0);
-        if (Controls.instance.keyboard.get('w') === KeyState.HELD)
-            d.y += - 1;
-        if (Controls.instance.keyboard.get('a') === KeyState.HELD)
-            d.x += -1;
-        if (Controls.instance.keyboard.get('s') === KeyState.HELD)
-            d.y += 1;
-        if (Controls.instance.keyboard.get('d') === KeyState.HELD)
-            d.x += 1;
+        if (this.controlled) {
+            this.input = new Vector(0, 0);
+            if (Controls.instance.keyboard.get('w') === KeyState.HELD)
+                this.input.y += - 1;
+            if (Controls.instance.keyboard.get('a') === KeyState.HELD)
+                this.input.x += -1;
+            if (Controls.instance.keyboard.get('s') === KeyState.HELD)
+                this.input.y += 1;
+            if (Controls.instance.keyboard.get('d') === KeyState.HELD)
+                this.input.x += 1;
+
+            if (Controls.instance.keyboard.get(' ') === KeyState.HELD && this.afterburner > 0) {
+                if (this.afterburner > 1) {
+                    this.speed = AFTERBURNER_SPEED;
+                }
+                this.afterburner -= dt / 2;
+            } else {
+                this.speed = SPEED;
+                if (this.afterburner < MAX_AFTERBURNER)
+                    this.afterburner += dt / 4;
+            }
+
+            if (Controls.instance.keyboard.get('e') === KeyState.PRESSED) {
+                this.engOn = !this.engOn;
+            }
+
+            if (Controls.instance.keyboard.get('r') === KeyState.PRESSED) {
+                this.rcsOn = !this.rcsOn;
+            }
+
+            if (Controls.instance.keyboard.get('g') === KeyState.PRESSED) {
+                this.gyroOn = !this.gyroOn;
+            }
+
+            if (Controls.instance.keyboard.get('h') === KeyState.PRESSED) {
+                this.shieldOn = !this.shieldOn;
+                console.log(this.shieldOn)
+            }
+        }
 
         if (this.damageTaken && this.shield.alpha > SHIELD_ALPHA) {
             this.shield.alpha -= dt / 40;
@@ -110,41 +146,14 @@ export default class Player extends Container implements IUpdatable {
             this.damageTaken = false;
         }
 
-        if (Controls.instance.keyboard.get(' ') === KeyState.HELD && this.afterburner > 0) {
-            if (this.afterburner > 1) {
-                this.speed = AFTERBURNER_SPEED;
-            }
-            this.afterburner -= dt / 2;
-        } else {
-            this.speed = SPEED;
-            if (this.afterburner < MAX_AFTERBURNER)
-                this.afterburner += dt / 4;
-        }
 
-        if (Controls.instance.keyboard.get('e') === KeyState.PRESSED) {
-            this.engOn = !this.engOn;
-        }
-
-        if (Controls.instance.keyboard.get('r') === KeyState.PRESSED) {
-            this.rcsOn = !this.rcsOn;
-        }
-
-        if (Controls.instance.keyboard.get('g') === KeyState.PRESSED) {
-            this.gyroOn = !this.gyroOn;
-        }
-
-        if (Controls.instance.keyboard.get('h') === KeyState.PRESSED) {
-            this.shieldOn = !this.shieldOn;
-            console.log(this.shieldOn)
-        }
-
-        this.jetL.scale.y = -0.4 * d.y * this.speed / SPEED + d.x * 0.1 + Math.random() / 20 + 0.1;
-        this.jetR.scale.y = -0.4 * d.y * this.speed / SPEED - d.x * 0.1 + Math.random() / 20 + 0.1;
+        this.jetL.scale.y = -0.4 * this.input.y * this.speed / SPEED + this.input.x * 0.1 + Math.random() / 20 + 0.1;
+        this.jetR.scale.y = -0.4 * this.input.y * this.speed / SPEED - this.input.x * 0.1 + Math.random() / 20 + 0.1;
         this.jetL.alpha = 0.75 + Math.random() / 4;
         this.jetR.alpha = 0.75 + Math.random() / 4;
 
-        if (d.x && this.engOn && !this.engBroken) {
-            this.angularVelocity = this.angularVelocity - this.angularVelocity * 0.01 * dt + d.x * dt * 0.1;
+        if (this.input.x && this.engOn && !this.engBroken) {
+            this.angularVelocity = this.angularVelocity - this.angularVelocity * 0.01 * dt + this.input.x * dt * 0.1;
         } else if (this.gyroOn && !this.gyroBroken) {
             this.angularVelocity -= this.angularVelocity * 0.1 * dt;
         }
@@ -157,10 +166,10 @@ export default class Player extends Container implements IUpdatable {
         this.graphics.angle = (this.graphics.angle + this.angularVelocity * dt) % 360;
         this.healthBar.width = this.health * 1.5;
 
-        if (d.y && this.engOn && !this.engBroken) {
+        if (this.input.y && this.engOn && !this.engBroken) {
             this.velocity = new Vector(
-                this.velocity.x - this.velocity.x * SPEED_DAMPENING * dt + this.speed * d.y * dt * Math.cos(this.graphics.rotation),
-                this.velocity.y - this.velocity.y * SPEED_DAMPENING * dt + this.speed * d.y * dt * Math.sin(this.graphics.rotation)
+                this.velocity.x - this.velocity.x * SPEED_DAMPENING * dt + this.speed * this.input.y * dt * Math.cos(this.graphics.rotation),
+                this.velocity.y - this.velocity.y * SPEED_DAMPENING * dt + this.speed * this.input.y * dt * Math.sin(this.graphics.rotation)
             );
         } else if (this.rcsOn && !this.rcsBroken && this.engOn && !this.engBroken) {
             this.velocity = new Vector(this.velocity.x - this.velocity.x * RCS_DAMPENING * dt, this.velocity.y - this.velocity.y * RCS_DAMPENING * dt);
@@ -168,16 +177,18 @@ export default class Player extends Container implements IUpdatable {
         this.x = this.x + this.velocity.x * dt / 1000;
         this.y = this.y + this.velocity.y * dt / 1000;
 
-        this._room.send({
-            type: 'player-state',
-            message: {
-                position: { x: this.x, y: this.y },
-                angle: this.graphics.angle,
-                health: this.health,
-                d: { x: d.x, y: d.y },
-                engine: !this.engBroken && this.engOn,
-                speed: this.speed,
-            }
-        })
+        if (this.controlled) {
+            this._room.send({
+                type: 'player-state',
+                message: {
+                    position: { x: this.x, y: this.y },
+                    angle: this.graphics.angle,
+                    health: this.health,
+                    input: { x: this.input.x, y: this.input.y },
+                    engine: !this.engBroken && this.engOn,
+                    speed: this.speed,
+                }
+            })
+        }
     }
 }

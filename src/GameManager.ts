@@ -8,7 +8,6 @@ import Camera from './game-objects/Camera';
 import { isIUpdatable } from './game-objects/IUpdate';
 import { AssetKey, SPEED_ZOOM_FACTOR, WINDOW_HEIGHT, WINDOW_WIDTH } from './consts';
 import { sortedClamp } from './utils';
-import Enemy from './game-objects/Enemy';
 import UI from './game-objects/UI';
 
 
@@ -37,30 +36,30 @@ export default class GameManager {
     private fullscreen = false
 
     player: Player;
-    enemies: Map<string, Enemy>;
+    enemies: Map<string, Player>;
     bullets: Bullet[];
 
     constructor(app: Application, camera: Camera, room: PeerRoom) {
         this.app = app;
         this.camera = camera;
         this.room = room;
-        this.enemies = new Map<string, Enemy>();
+        this.enemies = new Map<string, Player>();
         this.bullets = [];
     }
 
-    onPlayerState(address: string, message: { position: Vector; angle: number; health: number; d: Vector; engine: boolean; speed: number; }) {
+    onPlayerState(address: string, message: { position: Vector; angle: number; health: number; input: Vector; engine: boolean; speed: number; }) {
         if (this.enemies.has(address)) {
-            const enemy = this.enemies.get(address) as Enemy;
+            const enemy = this.enemies.get(address)!;
             enemy.x = message.position.x;
             enemy.y = message.position.y;
             enemy.graphics.angle = message.angle;
             enemy.health = message.health;
-            enemy.d.x = message.d.x;
-            enemy.d.y = message.d.y;
-            enemy.engine = message.engine;
+            enemy.input.x = message.input.x;
+            enemy.input.y = message.input.y;
+            enemy.engOn = message.engine;
             enemy.speed = message.speed;
         } else {
-            const enemy = new Enemy(AssetKey.Spaceship);
+            const enemy = new Player(this.room);
             this.enemies.set(address, enemy);
             this.camera.addChild(enemy);
         }
@@ -155,7 +154,7 @@ export default class GameManager {
         // Preload textures
         await this.loadAssets();
 
-        this.player = new Player(this.room, AssetKey.Spaceship);
+        this.player = new Player(this.room, true);
 
         this.camera.addChild(this.player);
 
@@ -215,7 +214,7 @@ export default class GameManager {
             const HEIGHT = this.app.screen.height;
 
             if (this.cameraFollowAllMode) {
-                const playersList: (Player | Enemy)[] = Array.from(this.enemies.values());
+                const playersList: Player[] = Array.from(this.enemies.values());
                 playersList.push(this.player);
 
                 const minX = playersList.reduce((min, cur) => cur.position.x < min ? cur.position.x : min, 9999999);
